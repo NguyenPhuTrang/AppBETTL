@@ -138,7 +138,7 @@ export class ProductController extends BaseController {
         }
     }
 
-    @UseGuards(AuthGuard)
+    // @UseGuards(AuthGuard)
     @ApiOperation({ summary: 'Get Product list' })
     @ApiResponseError([SwaggerApiType.GET_LIST])
     @ApiResponseSuccess(getProductListSuccessResponseExample)

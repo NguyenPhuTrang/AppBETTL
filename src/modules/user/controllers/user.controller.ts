@@ -150,7 +150,7 @@ export class UserController extends BaseController {
         }
     }
 
-    @UseGuards(AuthGuard)
+    // @UseGuards(AuthGuard)
     @ApiOperation({ summary: 'Get User list' })
     @ApiResponseError([SwaggerApiType.GET_LIST])
     @ApiResponseSuccess(getUserListSuccessResponseExample)
