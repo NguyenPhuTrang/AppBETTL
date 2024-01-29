@@ -18,4 +18,6 @@ export const ProductAttributesForList: (keyof Product)[] = [
     'updatedAt',
 ];
 
-export const ProductAttributesForDetail: (keyof Product)[] = ['_id', 'id', 'name'];
+export const ProductAttributesForDetail: (keyof Product)[] = [
+    '_id', 'id', 'name'
+];

@@ -67,7 +67,8 @@ export class UserController extends BaseController {
     @ApiBody({ type: UpdateUserDto })
     @Patch(':id')
     async updateUser(
-        @Param('id', new JoiValidationPipe(mongoIdSchema)) id: string,
+        @Param('id', new JoiValidationPipe(mongoIdSchema)) 
+        id: string,
         @Body(new TrimBodyPipe(), new JoiValidationPipe())
         dto: UpdateUserDto,
     ) {
@@ -99,7 +100,8 @@ export class UserController extends BaseController {
     @ApiResponseSuccess(deleteUserSuccessResponseExample)
     @Delete(':id')
     async deleteUser(
-        @Param('id', new JoiValidationPipe(mongoIdSchema)) id: string,
+        @Param('id', new JoiValidationPipe(mongoIdSchema)) 
+        id: string,
     ) {
         try {
             const user = await this.userService.findUserById(toObjectId(id));
@@ -148,7 +150,7 @@ export class UserController extends BaseController {
         }
     }
 
-    // @UseGuards(AuthGuard)
+    @UseGuards(AuthGuard)
     @ApiOperation({ summary: 'Get User list' })
     @ApiResponseError([SwaggerApiType.GET_LIST])
     @ApiResponseSuccess(getUserListSuccessResponseExample)
