@@ -17,10 +17,14 @@ export class User extends MongoBaseSchema {
     @Prop({ required: true, type: String })
     name: string;
     @Prop({ required: true, type: String })
-    address: string;
-    @Prop({ required: true, type: String })
     email: string;
     @Prop({ required: true, type: String })
+    birthday: string;
+    @Prop({ required: true, type: String })
+    numberPhone: string;
+    @Prop({ required: true, type: String })
+    avatar: string;
+    @Prop({ required: false, type: String })
     password: string;
     @Prop({ nullable: true, default: null })
     refresh_token: string;
