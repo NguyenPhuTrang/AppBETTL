@@ -1,4 +1,4 @@
-import { JoiValidate } from "@/common/decorators/validator.decorator";
+import { JoiValidate } from "../common/decorators/validator.decorator";
 import { INPUT_TEXT_MAX_LENGTH } from "../common/constants";
 import { ApiProperty } from "@nestjs/swagger";
 import Joi from "../plugins/joi";
