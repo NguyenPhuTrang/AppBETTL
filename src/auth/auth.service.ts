@@ -1,6 +1,6 @@
 import { HttpException, Injectable, HttpStatus } from '@nestjs/common';
 import { UserRepository } from '../modules/user/user.repository';
-import { LoginUserDto } from './dto/login-user.dto';
+import { LoginUserDto } from './auth.interface';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
@@ -10,7 +10,7 @@ export class AuthService {
         private readonly userRepository: UserRepository,
         private readonly jwtService: JwtService,
         private configService: ConfigService,
-    ) {}
+    ) { }
 
     async login(loginUserDto: LoginUserDto): Promise<any> {
         const user = await this.userRepository.findOneByCondition({
@@ -31,19 +31,49 @@ export class AuthService {
         return this.generateToken(payload);
     }
 
-    private async generateToken(payload: { id: string; email: string }) {
-        const access_token = await this.jwtService.signAsync(payload);
-        const refresh_token = await this.jwtService.signAsync(payload, {
+    private async generateToken(payload: { id: string; email: string }): Promise<any> {
+        const accessToken = await this.jwtService.signAsync(payload);
+        const expInRefreshToken = this.configService.get<string>('EXP_IN_REFRESH_TOKEN');
+        const expiresIn = this.convertTimeToSeconds(expInRefreshToken);
+        const refreshToken = await this.jwtService.signAsync(payload, {
             secret: this.configService.get<string>('SECRET'),
-            expiresIn: this.configService.get<string>('EXP_IN_REFRESH_TOKEN')
+            expiresIn: expiresIn,
         });
-        await this.userRepository.updateRefreshToken(
-            payload.email,
-            refresh_token,
-        );
+        await this.userRepository.updateRefreshToken(payload.email, refreshToken);
 
-        return { access_token, refresh_token };
+        return {
+            code: HttpStatus.OK,
+            message: 'Login successful',
+            data: { accessToken, expiresIn, refreshToken },
+            version: '1.0.0'
+        };
     }
+
+    private convertTimeToSeconds(expTime: string): number {
+        const numericValue = parseInt(expTime);
+        const unit = expTime.slice(-1);
+
+        let seconds = 0;
+        switch (unit) {
+            case 's':
+                seconds = numericValue;
+                break;
+            case 'm':
+                seconds = numericValue * 60;
+                break;
+            case 'h':
+                seconds = numericValue * 60 * 60;
+                break;
+            case 'd':
+                seconds = numericValue * 24 * 60 * 60;
+                break;
+            default:
+                throw new Error('Invalid time unit');
+        }
+
+        return seconds;
+    }
+
     async refreshToken(refresh_token: string): Promise<any> {
         try {
             const verify = await this.jwtService.verifyAsync(refresh_token, {
