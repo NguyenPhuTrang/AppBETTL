@@ -1,8 +1,9 @@
-import { HttpException, Injectable, HttpStatus } from '@nestjs/common';
+import { HttpException, Injectable, HttpStatus, Logger } from '@nestjs/common';
 import { UserRepository } from '../modules/user/user.repository';
-import { LoginUserDto } from './auth.interface';
+import { LoginUserDto, RegisterUserDto } from './auth.interface';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { User } from '../database/schemas/user.schema';
 
 @Injectable()
 export class AuthService {
@@ -87,6 +88,18 @@ export class AuthService {
             }
         } catch (error) {
             throw new HttpException('Refresh token is not valid', HttpStatus.BAD_REQUEST)
+        }
+    }
+    
+    async register(dto: RegisterUserDto) {
+        try {
+            const user: SchemaCreateDocument<User> = {
+                ...(dto as any),
+            };
+            return await this.userRepository.createOne(user);
+        } catch (error) {
+            throw new HttpException('Error in UserService createUser: ', error);
+            throw error;
         }
     }
 }
