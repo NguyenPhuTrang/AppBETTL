@@ -4,6 +4,7 @@ import { LoginUserDto, RefreshToken, RegisterUserDto } from './auth.interface';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../database/schemas/user.schema';
+import { SuccessResponse } from '../common/helpers/response';
 
 @Injectable()
 export class AuthService {
@@ -42,16 +43,17 @@ export class AuthService {
 
         const refreshToken = await this.jwtService.signAsync(payload, {
             secret: this.configService.get<string>('SECRET'),
-            expiresIn: expiresInRefresh,
+            expiresIn: '1d',
         });
         await this.userRepository.updateRefreshToken(payload.email, refreshToken);
 
-        return {
-            code: HttpStatus.OK,
-            message: 'Login successful',
-            data: { accessToken, expiresIn, refreshToken },
-            version: '1.0.0'
-        };
+        // return {
+        //     code: HttpStatus.OK,
+        //     message: 'Login successful',
+        //     data: { accessToken, expiresIn, refreshToken },
+        //     version: '1.0.0'
+        // };
+        return new SuccessResponse({accessToken, expiresIn, refreshToken});
     }
 
     private convertTimeToSeconds(expTime: string): number {
