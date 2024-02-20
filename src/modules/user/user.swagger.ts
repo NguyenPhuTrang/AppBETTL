@@ -28,7 +28,7 @@ export const getUserDetailSuccessResponseExample = {
 };
 
 export const getUserListSuccessResponseExample = {
-    // totalItems: 1,
+    totalItems: 1,
     items: [
         {
             _id: '659e7592b3b56d0946b3c7b5',
@@ -36,6 +36,7 @@ export const getUserListSuccessResponseExample = {
             updatedAt: '2024-01-10T10:47:59.566Z',
             name: 'new name',
             email: 'new email',
+            birthday: 'new birthday',
             id: '659e7592b3b56d0946b3c7b5',
         },
     ],

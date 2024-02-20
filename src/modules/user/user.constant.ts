@@ -10,6 +10,11 @@ export const UserAttributesForList: (keyof User)[] = [
     '_id',
     'id',
     'name',
+    'email',
+    'birthday',
+    'numberPhone',
+    'avatarUrl',
+    'refresh_token',
     'createdAt',
     'updatedAt',
 ];

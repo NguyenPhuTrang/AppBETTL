@@ -1,4 +1,4 @@
-import { INPUT_TEXT_MAX_LENGTH } from '../../common/constants';
+import { INPUT_PHONE_MAX_LENGTH, INPUT_TEXT_MAX_LENGTH, URL_MAX_LENGTH } from '../../common/constants';
 import { JoiValidate } from '../../common/decorators/validator.decorator';
 import { UserOrderBy } from './user.constant';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -40,11 +40,11 @@ export class CreateUserDto {
 
     @ApiProperty({
         type: String,
-        maxLength: INPUT_TEXT_MAX_LENGTH,
+        maxLength: URL_MAX_LENGTH,
         default: 'User avatar',
     })
-    @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH).required())
-    avatar: string;
+    @JoiValidate(Joi.string().trim().max(URL_MAX_LENGTH).required())
+    avatarUrl: string;
 
     @ApiProperty({
         type: String,
@@ -82,19 +82,19 @@ export class UpdateUserDto {
 
     @ApiProperty({
         type: String,
-        maxLength: INPUT_TEXT_MAX_LENGTH,
+        maxLength: INPUT_PHONE_MAX_LENGTH,
         default: 'User numberPhone',
     })
-    @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH).required())
+    @JoiValidate(Joi.string().trim().max(INPUT_PHONE_MAX_LENGTH).required())
     numberPhone: string;
 
     @ApiProperty({
         type: String,
-        maxLength: INPUT_TEXT_MAX_LENGTH,
+        maxLength: URL_MAX_LENGTH,
         default: 'User avatar',
     })
-    @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH).required())
-    avatar: string;
+    @JoiValidate(Joi.string().trim().max(URL_MAX_LENGTH).required())
+    avatarUrl: string;
 }
 
 export class GetUserListQuery extends CommonListQuery {

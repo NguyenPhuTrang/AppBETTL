@@ -1,6 +1,6 @@
-import { HttpException, Injectable, HttpStatus, Logger } from '@nestjs/common';
+import { HttpException, Injectable, HttpStatus } from '@nestjs/common';
 import { UserRepository } from '../modules/user/user.repository';
-import { LoginUserDto, RegisterUserDto } from './auth.interface';
+import { LoginUserDto, RefreshToken, RegisterUserDto } from './auth.interface';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../database/schemas/user.schema';
@@ -29,16 +29,20 @@ export class AuthService {
             throw new HttpException('pass wrong', HttpStatus.UNAUTHORIZED);
         }
         const payload = { id: user.id, email: user.email };
-        return this.generateToken(payload);
+        return this.generateTokenLogin(payload);
     }
 
-    private async generateToken(payload: { id: string; email: string }): Promise<any> {
+    private async generateTokenLogin(payload: { id: string; email: string }): Promise<any> {
         const accessToken = await this.jwtService.signAsync(payload);
         const expInRefreshToken = this.configService.get<string>('EXP_IN_REFRESH_TOKEN');
-        const expiresIn = this.convertTimeToSeconds(expInRefreshToken);
+        const expInAccessToken = this.configService.get<string>('EXP_IN_ACCESS_TOKEN');
+
+        const expiresInRefresh = this.convertTimeToSeconds(expInRefreshToken);
+        const expiresIn = this.convertTimeToSeconds(expInAccessToken);
+
         const refreshToken = await this.jwtService.signAsync(payload, {
             secret: this.configService.get<string>('SECRET'),
-            expiresIn: expiresIn,
+            expiresIn: expiresInRefresh,
         });
         await this.userRepository.updateRefreshToken(payload.email, refreshToken);
 
@@ -75,22 +79,40 @@ export class AuthService {
         return seconds;
     }
 
-    async refreshToken(refresh_token: string): Promise<any> {
+    private async generateTokenRefresh(payload: { id: string; email: string }): Promise<any> {
+        const accessToken = await this.jwtService.signAsync(payload);
+        const expInAccessToken = this.configService.get<string>('EXP_IN_ACCESS_TOKEN');
+        const expiresIn = this.convertTimeToSeconds(expInAccessToken);
+        return {
+            code: HttpStatus.OK,
+            message: 'Login successful',
+            data: { accessToken, expiresIn },
+            version: '1.0.0'
+        };
+    }
+
+    async refreshToken(refresh_token: RefreshToken): Promise<any> {
         try {
-            const verify = await this.jwtService.verifyAsync(refresh_token, {
+            const verify = await this.jwtService.verifyAsync(refresh_token.refreshToken, {
                 secret: this.configService.get<string>('SECRET')
             })
-            const checkExistToken = await this.userRepository.findOneBy({ email: verify.email, refresh_token })
+            const checkExistToken = await this.userRepository.findOneBy({ email: verify.email });
             if (checkExistToken) {
-                return this.generateToken({ id: verify.id, email: verify.email })
+                return this.generateTokenRefresh({ id: verify.id, email: verify.email });
             } else {
                 throw new HttpException('Refresh token is not valid', HttpStatus.BAD_REQUEST);
             }
         } catch (error) {
-            throw new HttpException('Refresh token is not valid', HttpStatus.BAD_REQUEST)
+            if (error.name === 'TokenExpiredError') {
+                throw new HttpException('Refresh token has expired', HttpStatus.UNAUTHORIZED);
+            } else if (error.name === 'JsonWebTokenError') {
+                throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);
+            } else {
+                throw new HttpException('Error verifying refresh token', HttpStatus.INTERNAL_SERVER_ERROR);
+            }
         }
     }
-    
+
     async register(dto: RegisterUserDto) {
         try {
             const user: SchemaCreateDocument<User> = {

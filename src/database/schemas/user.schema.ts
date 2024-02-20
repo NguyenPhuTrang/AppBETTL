@@ -23,7 +23,7 @@ export class User extends MongoBaseSchema {
     @Prop({ required: true, type: String })
     numberPhone: string;
     @Prop({ required: true, type: String })
-    avatar: string;
+    avatarUrl: string;
     @Prop({ required: false, type: String })
     password: string;
     @Prop({ nullable: true, default: null })
