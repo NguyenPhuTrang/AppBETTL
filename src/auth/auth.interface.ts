@@ -21,10 +21,6 @@ export class LoginUserDto {
     password: string;
 }
 
-export class RefreshToken {
-    refreshToken: string;
-}
-
 export class RegisterUserDto {
     @ApiProperty({
         type: String,

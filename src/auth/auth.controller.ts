@@ -1,11 +1,14 @@
-import { Body, Controller, Get, Headers, Post } from '@nestjs/common';
-import { LoginUserDto, RefreshToken, RegisterUserDto } from './auth.interface';
+import { Body, Controller, ExecutionContext, Get, Headers, Post, Req } from '@nestjs/common';
+import { LoginUserDto, RegisterUserDto } from './auth.interface';
 import { AuthService } from './auth.service';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { BaseController } from '../common/base/base.controller';
+import { Request } from 'express';
+
 @ApiTags('Auth APIs')
 @Controller('auth')
-export class AuthController {
-    constructor(private authService: AuthService) { }
+export class AuthController extends BaseController {
+    constructor(private authService: AuthService) { super();}
 
     @ApiBody({ type: RegisterUserDto })
     @Post('register')
@@ -19,8 +22,17 @@ export class AuthController {
         return this.authService.login(loginUserDto);
     }
 
-    @Post('refresh-token')
-    refreshToken(@Body() refreshToken: RefreshToken): Promise<any> {
-        return this.authService.refreshToken(refreshToken);
+    @Get('refresh-token')
+    async refreshToken(@Req() req: Request) {
+        return this.authService.refreshToken(req);
+    }
+
+    @Get('get-user-profile')
+    async getUser(@Req() req: Request) {
+        try {
+            return await this.authService.getUser(req);
+        } catch (error) {
+            this.handleError(error);
+        }
     }
 }

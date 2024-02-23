@@ -1,11 +1,11 @@
 import { HttpException, Injectable, HttpStatus } from '@nestjs/common';
 import { UserRepository } from '../modules/user/user.repository';
-import { LoginUserDto, RefreshToken, RegisterUserDto } from './auth.interface';
+import { LoginUserDto, RegisterUserDto } from './auth.interface';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../database/schemas/user.schema';
 import { SuccessResponse } from '../common/helpers/response';
-
+import { Request } from 'express';
 @Injectable()
 export class AuthService {
     constructor(
@@ -30,10 +30,33 @@ export class AuthService {
             throw new HttpException('pass wrong', HttpStatus.UNAUTHORIZED);
         }
         const payload = { id: user.id, email: user.email };
-        return this.generateTokenLogin(payload);
+        return this.generateToken(payload);
     }
 
-    private async generateTokenLogin(payload: { id: string; email: string }): Promise<any> {
+    async refreshToken(request: Request): Promise<any> {
+        try {
+            const refresh_token = this.extractTokenFromHeader(request);
+            const verify = await this.jwtService.verifyAsync(refresh_token, {
+                secret: this.configService.get<string>('SECRET')
+            })
+            const checkExistToken = await this.userRepository.findOneBy({ email: verify.email });
+            if (checkExistToken) {
+                return this.generateToken({ id: verify.id, email: verify.email });
+            } else {
+                throw new HttpException('Refresh token is not valid', HttpStatus.BAD_REQUEST);
+            }
+        } catch (error) {
+            if (error.name === 'TokenExpiredError') {
+                throw new HttpException('Refresh token has expired', HttpStatus.UNAUTHORIZED);
+            } else if (error.name === 'JsonWebTokenError') {
+                throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);
+            } else {
+                throw new HttpException('Error verifying refresh token', HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+    }
+
+    private async generateToken(payload: { id: string; email: string }): Promise<any> {
         const accessToken = await this.jwtService.signAsync(payload);
         const expInRefreshToken = this.configService.get<string>('EXP_IN_REFRESH_TOKEN');
         const expInAccessToken = this.configService.get<string>('EXP_IN_ACCESS_TOKEN');
@@ -43,17 +66,10 @@ export class AuthService {
 
         const refreshToken = await this.jwtService.signAsync(payload, {
             secret: this.configService.get<string>('SECRET'),
-            expiresIn: '1d',
+            expiresIn: '1h',
         });
         await this.userRepository.updateRefreshToken(payload.email, refreshToken);
-
-        // return {
-        //     code: HttpStatus.OK,
-        //     message: 'Login successful',
-        //     data: { accessToken, expiresIn, refreshToken },
-        //     version: '1.0.0'
-        // };
-        return new SuccessResponse({accessToken, expiresIn, refreshToken});
+        return new SuccessResponse({ accessToken, expiresIn, refreshToken });
     }
 
     private convertTimeToSeconds(expTime: string): number {
@@ -81,28 +97,37 @@ export class AuthService {
         return seconds;
     }
 
-    private async generateTokenRefresh(payload: { id: string; email: string }): Promise<any> {
-        const accessToken = await this.jwtService.signAsync(payload);
-        const expInAccessToken = this.configService.get<string>('EXP_IN_ACCESS_TOKEN');
-        const expiresIn = this.convertTimeToSeconds(expInAccessToken);
-        return {
-            code: HttpStatus.OK,
-            message: 'Login successful',
-            data: { accessToken, expiresIn },
-            version: '1.0.0'
-        };
+    async register(dto: RegisterUserDto) {
+        try {
+            const user: SchemaCreateDocument<User> = {
+                ...(dto as any),
+            };
+            return await this.userRepository.createOne(user);
+        } catch (error) {
+            throw new HttpException('Error in UserService createUser: ', error);
+        }
     }
 
-    async refreshToken(refresh_token: RefreshToken): Promise<any> {
+    async getUser(request: Request): Promise<any> {
         try {
-            const verify = await this.jwtService.verifyAsync(refresh_token.refreshToken, {
+            const accessToken = this.extractTokenFromHeader(request);
+            const verify = await this.jwtService.verifyAsync(accessToken, {
                 secret: this.configService.get<string>('SECRET')
             })
-            const checkExistToken = await this.userRepository.findOneBy({ email: verify.email });
-            if (checkExistToken) {
-                return this.generateTokenRefresh({ id: verify.id, email: verify.email });
-            } else {
-                throw new HttpException('Refresh token is not valid', HttpStatus.BAD_REQUEST);
+            const user = await this.userRepository.findOneByCondition({
+                email: verify.email,
+            });
+            
+            if (user) {
+                const selectedUserData = {
+                    name: user.name,
+                    email: user.email,
+                    birthday: user.birthday,
+                    numberPhone: user.numberPhone,
+                    avatarUrl: user.avatarUrl,
+                };
+    
+                return new SuccessResponse({ user: selectedUserData });
             }
         } catch (error) {
             if (error.name === 'TokenExpiredError') {
@@ -114,16 +139,8 @@ export class AuthService {
             }
         }
     }
-
-    async register(dto: RegisterUserDto) {
-        try {
-            const user: SchemaCreateDocument<User> = {
-                ...(dto as any),
-            };
-            return await this.userRepository.createOne(user);
-        } catch (error) {
-            throw new HttpException('Error in UserService createUser: ', error);
-            throw error;
-        }
+    private extractTokenFromHeader(request: Request): string | undefined {
+        const [type, token] = request.headers.authorization ? request.headers.authorization.split(' ') : [];
+        return type === 'Bearer' ? token : undefined;
     }
 }
