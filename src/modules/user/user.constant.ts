@@ -14,6 +14,7 @@ export const UserAttributesForList: (keyof User)[] = [
     'birthday',
     'numberPhone',
     'avatarUrl',
+    'role',
     'refresh_token',
     'createdAt',
     'updatedAt',

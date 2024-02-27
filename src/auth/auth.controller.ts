@@ -1,5 +1,5 @@
 import { Body, Controller, ExecutionContext, Get, Headers, Post, Req } from '@nestjs/common';
-import { LoginUserDto, RegisterUserDto } from './auth.interface';
+import { LoginAdminDto, LoginUserDto, RegisterUserDto } from './auth.interface';
 import { AuthService } from './auth.service';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { BaseController } from '../common/base/base.controller';
@@ -18,8 +18,14 @@ export class AuthController extends BaseController {
 
     @ApiBody({ type: LoginUserDto })
     @Post('login')
-    login(@Body() loginUserDto: LoginUserDto): Promise<any> {
-        return this.authService.login(loginUserDto);
+    login(@Body() loginAdminDto: LoginAdminDto): Promise<any> {
+        return this.authService.loginAdmin(loginAdminDto);
+    }
+
+    @ApiBody({ type: LoginUserDto })
+    @Post('login-user')
+    loginUser(@Body() loginUserDto: LoginUserDto): Promise<any> {
+        return this.authService.loginUser(loginUserDto);
     }
 
     @Get('refresh-token')

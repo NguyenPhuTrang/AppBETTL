@@ -1,4 +1,4 @@
-import { INPUT_TEXT_MAX_LENGTH, TEXTAREA_MAX_LENGTH, URL_MAX_LENGTH } from '../../common/constants';
+import { INPUT_TEXT_MAX_LENGTH, MAX_PRICE, MIN_PRICE, TEXTAREA_MAX_LENGTH, URL_MAX_LENGTH } from '../../common/constants';
 import { JoiValidate } from '../../common/decorators/validator.decorator';
 import { CommonListQuery } from "../../common/interfaces";
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -17,7 +17,8 @@ export class CreateProductDto {
 
     @ApiProperty({
         type: String,
-        maxLength: INPUT_TEXT_MAX_LENGTH,
+        maxLength: MAX_PRICE,
+        minLength: MIN_PRICE,
         default: 'Product price',
     })
     @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH).required())
@@ -58,7 +59,8 @@ export class UpdateProductDto {
     name: string;
     @ApiProperty({
         type: String,
-        maxLength: INPUT_TEXT_MAX_LENGTH,
+        maxLength: MAX_PRICE,
+        minLength: MIN_PRICE,
         default: 'Product price',
     })
     @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH).required())
@@ -72,10 +74,10 @@ export class UpdateProductDto {
     quantity: string;
     @ApiProperty({
         type: String,
-        maxLength: INPUT_TEXT_MAX_LENGTH,
+        maxLength: TEXTAREA_MAX_LENGTH,
         default: 'Product description',
     })
-    @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH).required())
+    @JoiValidate(Joi.string().trim().max(TEXTAREA_MAX_LENGTH).required())
     description: string;
     @ApiProperty({
         type: String,

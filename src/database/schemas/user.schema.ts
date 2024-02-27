@@ -26,6 +26,8 @@ export class User extends MongoBaseSchema {
     avatarUrl: string;
     @Prop({ required: false, type: String })
     password: string;
+    @Prop({ required: true, type: String })
+    role: string;
     @Prop({ nullable: true, default: null })
     refresh_token: string;
 }

@@ -21,6 +21,24 @@ export class LoginUserDto {
     password: string;
 }
 
+export class LoginAdminDto {
+    @ApiProperty({
+        type: String,
+        maxLength: INPUT_TEXT_MAX_LENGTH,
+        default: "abcdef@example.com",
+    })
+    @JoiValidate(Joi.string().trim().email().max(INPUT_TEXT_MAX_LENGTH).required())
+    email: string;
+
+    @ApiProperty({
+        type: String,
+        maxLength: INPUT_TEXT_MAX_LENGTH,
+        default: '123456a@',
+    })
+    @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH))
+    password: string;
+}
+
 export class RegisterUserDto {
     @ApiProperty({
         type: String,

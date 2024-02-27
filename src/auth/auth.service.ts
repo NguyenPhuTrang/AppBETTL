@@ -1,6 +1,6 @@
 import { HttpException, Injectable, HttpStatus } from '@nestjs/common';
 import { UserRepository } from '../modules/user/user.repository';
-import { LoginUserDto, RegisterUserDto } from './auth.interface';
+import { LoginAdminDto, LoginUserDto, RegisterUserDto } from './auth.interface';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../database/schemas/user.schema';
@@ -14,17 +14,45 @@ export class AuthService {
         private configService: ConfigService,
     ) { }
 
-    async login(loginUserDto: LoginUserDto): Promise<any> {
+    async loginUser(loginUserDto: LoginUserDto): Promise<any> {
         const user = await this.userRepository.findOneByCondition({
             email: loginUserDto.email,
         });
+        console.log(user);
+        
         if (!user) {
             throw new HttpException('user not find', HttpStatus.UNAUTHORIZED);
         }
+        if (user.role !== 'user') {
+            throw new HttpException('user don\'\ t user', HttpStatus.UNAUTHORIZED);
+        }
+
         if (
             !(await this.userRepository.comparePassword(
                 user,
                 loginUserDto.password,
+            ))
+        ) {
+            throw new HttpException('pass wrong', HttpStatus.UNAUTHORIZED);
+        }
+        const payload = { id: user.id, email: user.email };
+        return this.generateToken(payload);
+    }
+
+    async loginAdmin(loginAdminDto: LoginAdminDto): Promise<void> {
+        const user = await this.userRepository.findOneByCondition({
+            email: loginAdminDto.email,
+        });
+        if (!user) {
+            throw new HttpException('user not find', HttpStatus.UNAUTHORIZED);
+        }
+        if (user.role !== 'admin') {
+            throw new HttpException('user don\'\ t user', HttpStatus.UNAUTHORIZED);
+        }
+        if (
+            !(await this.userRepository.comparePassword(
+                user,
+                loginAdminDto.password,
             ))
         ) {
             throw new HttpException('pass wrong', HttpStatus.UNAUTHORIZED);
@@ -66,7 +94,7 @@ export class AuthService {
 
         const refreshToken = await this.jwtService.signAsync(payload, {
             secret: this.configService.get<string>('SECRET'),
-            expiresIn: '1h',
+            expiresIn: expiresInRefresh,
         });
         await this.userRepository.updateRefreshToken(payload.email, refreshToken);
         return new SuccessResponse({ accessToken, expiresIn, refreshToken });
@@ -119,15 +147,13 @@ export class AuthService {
             });
             
             if (user) {
-                const selectedUserData = {
+                return new SuccessResponse({ 
                     name: user.name,
                     email: user.email,
                     birthday: user.birthday,
                     numberPhone: user.numberPhone,
-                    avatarUrl: user.avatarUrl,
-                };
-    
-                return new SuccessResponse({ user: selectedUserData });
+                    avatarUrl: user.avatarUrl, 
+                });
             }
         } catch (error) {
             if (error.name === 'TokenExpiredError') {

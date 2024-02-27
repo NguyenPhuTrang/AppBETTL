@@ -32,10 +32,10 @@ export class CreateUserDto {
 
     @ApiProperty({
         type: String,
-        maxLength: INPUT_TEXT_MAX_LENGTH,
-        default: 'User numberPhone',
+        maxLength: INPUT_PHONE_MAX_LENGTH,
+        default: '0123456789',
     })
-    @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH).required())
+    @JoiValidate(Joi.string().trim().max(INPUT_PHONE_MAX_LENGTH).required())
     numberPhone: string;
 
     @ApiProperty({
@@ -49,7 +49,15 @@ export class CreateUserDto {
     @ApiProperty({
         type: String,
         maxLength: INPUT_TEXT_MAX_LENGTH,
-        default: '123',
+        default: '',
+    })
+    @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH).required())
+    role: string;
+
+    @ApiProperty({
+        type: String,
+        maxLength: INPUT_TEXT_MAX_LENGTH,
+        default: '',
     })
     @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH))
     password: string;
