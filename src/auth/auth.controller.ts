@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { BaseController } from '../common/base/base.controller';
 import { Request } from 'express';
+import { SuccessResponse } from '@/common/helpers/response';
 
 @ApiTags('Auth APIs')
 @Controller('auth')
@@ -12,31 +13,47 @@ export class AuthController extends BaseController {
 
     @ApiBody({ type: RegisterUserDto })
     @Post('register')
-    register(@Body() registerUserDto: RegisterUserDto): Promise<any> {
+    async register(@Body() registerUserDto: RegisterUserDto) {
         return this.authService.register(registerUserDto);
     }
 
     @ApiBody({ type: LoginUserDto })
     @Post('login')
-    login(@Body() loginAdminDto: LoginAdminDto): Promise<any> {
-        return this.authService.loginAdmin(loginAdminDto);
+    async login(@Body() loginAdminDto: LoginAdminDto) {
+        try {
+            const res = await this.authService.loginAdmin(loginAdminDto);
+            return new SuccessResponse(res);
+        } catch (error) {
+            this.handleError(error);
+        }
     }
 
     @ApiBody({ type: LoginUserDto })
     @Post('login-user')
-    loginUser(@Body() loginUserDto: LoginUserDto): Promise<any> {
-        return this.authService.loginUser(loginUserDto);
+    async loginUser(@Body() loginUserDto: LoginUserDto) {
+        try {
+            const res = await this.authService.loginUser(loginUserDto);
+            return new SuccessResponse(res);
+        } catch (error) {
+            this.handleError(error);
+        }
     }
 
     @Get('refresh-token')
     async refreshToken(@Req() req: Request) {
-        return this.authService.refreshToken(req);
+        try {
+            const res = await this.authService.refreshToken(req);
+            return new SuccessResponse(res)
+        } catch (error) {
+            this.handleError(error);
+        }
     }
 
     @Get('get-user-profile')
     async getUser(@Req() req: Request) {
         try {
-            return await this.authService.getUser(req);
+            const res = await this.authService.getUser(req);
+            return new SuccessResponse(res);
         } catch (error) {
             this.handleError(error);
         }

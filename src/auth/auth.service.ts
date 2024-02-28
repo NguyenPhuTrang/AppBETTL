@@ -15,51 +15,64 @@ export class AuthService {
     ) { }
 
     async loginUser(loginUserDto: LoginUserDto): Promise<any> {
-        const user = await this.userRepository.findOneByCondition({
-            email: loginUserDto.email,
-        });
-        console.log(user);
-        
-        if (!user) {
-            throw new HttpException('user not find', HttpStatus.UNAUTHORIZED);
-        }
-        if (user.role !== 'user') {
-            throw new HttpException('user don\'\ t user', HttpStatus.UNAUTHORIZED);
-        }
+        try {
+            const user = await this.userRepository.findOneByCondition({
+                email: loginUserDto.email,
+            });
 
-        if (
-            !(await this.userRepository.comparePassword(
+            console.log(user);
+
+            if (!user) {
+                throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);
+            }
+
+            if (user.role !== 'user') {
+                throw new HttpException('User is not a regular user', HttpStatus.UNAUTHORIZED);
+            }
+
+            const isPasswordValid = await this.userRepository.comparePassword(
                 user,
                 loginUserDto.password,
-            ))
-        ) {
-            throw new HttpException('pass wrong', HttpStatus.UNAUTHORIZED);
+            );
+
+            if (!isPasswordValid) {
+                throw new HttpException('Incorrect password', HttpStatus.UNAUTHORIZED);
+            }
+
+            const payload = { id: user.id, email: user.email };
+            return this.generateToken(payload);
+        } catch (error) {
+            throw error;
         }
-        const payload = { id: user.id, email: user.email };
-        return this.generateToken(payload);
     }
 
-    async loginAdmin(loginAdminDto: LoginAdminDto): Promise<void> {
-        const user = await this.userRepository.findOneByCondition({
-            email: loginAdminDto.email,
-        });
-        if (!user) {
-            throw new HttpException('user not find', HttpStatus.UNAUTHORIZED);
+
+    async loginAdmin(loginAdminDto: LoginAdminDto): Promise<any> {
+        try {
+            const user = await this.userRepository.findOneByCondition({
+                email: loginAdminDto.email,
+            });
+
+            if (!user) {
+                throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);
+            }
+
+            if (user.role !== 'admin') {
+                throw new HttpException('User is not an admin', HttpStatus.UNAUTHORIZED);
+            }
+
+            if (!(await this.userRepository.comparePassword(user, loginAdminDto.password))) {
+                throw new HttpException('Incorrect password', HttpStatus.UNAUTHORIZED);
+            }
+
+            const payload = { id: user.id, email: user.email };
+            return this.generateToken(payload);
+        } catch (error) {
+            throw error;
         }
-        if (user.role !== 'admin') {
-            throw new HttpException('user don\'\ t user', HttpStatus.UNAUTHORIZED);
-        }
-        if (
-            !(await this.userRepository.comparePassword(
-                user,
-                loginAdminDto.password,
-            ))
-        ) {
-            throw new HttpException('pass wrong', HttpStatus.UNAUTHORIZED);
-        }
-        const payload = { id: user.id, email: user.email };
-        return this.generateToken(payload);
     }
+
+
 
     async refreshToken(request: Request): Promise<any> {
         try {
@@ -97,7 +110,7 @@ export class AuthService {
             expiresIn: expiresInRefresh,
         });
         await this.userRepository.updateRefreshToken(payload.email, refreshToken);
-        return new SuccessResponse({ accessToken, expiresIn, refreshToken });
+        return { accessToken, expiresIn, refreshToken };
     }
 
     private convertTimeToSeconds(expTime: string): number {
@@ -141,21 +154,28 @@ export class AuthService {
             const accessToken = this.extractTokenFromHeader(request);
             const verify = await this.jwtService.verifyAsync(accessToken, {
                 secret: this.configService.get<string>('SECRET')
-            })
+            });
+
             const user = await this.userRepository.findOneByCondition({
                 email: verify.email,
             });
-            
-            if (user) {
-                return new SuccessResponse({ 
-                    name: user.name,
-                    email: user.email,
-                    birthday: user.birthday,
-                    numberPhone: user.numberPhone,
-                    avatarUrl: user.avatarUrl, 
-                });
+
+            if (!user) {
+                throw new HttpException('User not found', HttpStatus.NOT_FOUND);
             }
+
+            return {
+                name: user.name,
+                email: user.email,
+                birthday: user.birthday,
+                numberPhone: user.numberPhone,
+                avatarUrl: user.avatarUrl,
+            };
         } catch (error) {
+            if (error instanceof HttpException) {
+                throw error;
+            }
+
             if (error.name === 'TokenExpiredError') {
                 throw new HttpException('Refresh token has expired', HttpStatus.UNAUTHORIZED);
             } else if (error.name === 'JsonWebTokenError') {
@@ -165,6 +185,7 @@ export class AuthService {
             }
         }
     }
+
     private extractTokenFromHeader(request: Request): string | undefined {
         const [type, token] = request.headers.authorization ? request.headers.authorization.split(' ') : [];
         return type === 'Bearer' ? token : undefined;
