@@ -76,6 +76,7 @@ export class UserRepository extends BaseRepository<User> {
                 orderBy = DEFAULT_ORDER_BY,
                 orderDirection = DEFAULT_ORDER_DIRECTION,
                 name = '',
+                role = 'user'
             } = query;
 
             const matchQuery: FilterQuery<User> = {};
@@ -94,6 +95,12 @@ export class UserRepository extends BaseRepository<User> {
             if (name) {
                 matchQuery.$and.push({
                     name,
+                });
+            }
+
+            if(role) {
+                matchQuery.$and.push({
+                    role,
                 });
             }
 
