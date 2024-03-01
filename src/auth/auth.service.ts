@@ -1,4 +1,4 @@
-import { HttpException, Injectable, HttpStatus } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { UserRepository } from '../modules/user/user.repository';
 import { LoginAdminDto, LoginUserDto, RegisterUserDto } from './auth.interface';
 import { JwtService } from '@nestjs/jwt';
@@ -6,13 +6,15 @@ import { ConfigService } from '@nestjs/config';
 import { User } from '../database/schemas/user.schema';
 import { SuccessResponse } from '../common/helpers/response';
 import { Request } from 'express';
+import { HttpStatus } from '../common/constants';
+import { BaseService } from '@/common/base/base.service';
 @Injectable()
-export class AuthService {
+export class AuthService extends BaseService {
     constructor(
         private readonly userRepository: UserRepository,
         private readonly jwtService: JwtService,
         private configService: ConfigService,
-    ) { }
+    ) { super() }
 
     async loginUser(loginUserDto: LoginUserDto): Promise<any> {
         try {
@@ -71,8 +73,6 @@ export class AuthService {
             throw error;
         }
     }
-
-
 
     async refreshToken(request: Request): Promise<any> {
         try {
@@ -138,14 +138,45 @@ export class AuthService {
         return seconds;
     }
 
-    async register(dto: RegisterUserDto) {
+    async register(dto: RegisterUserDto): Promise<any> {
         try {
+            const existingUser = await this.userRepository.findOneByCondition({
+                email: dto.email,
+            });
+    
+            if (existingUser) {
+                throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
+            }
+    
             const user: SchemaCreateDocument<User> = {
                 ...(dto as any),
             };
+    
             return await this.userRepository.createOne(user);
         } catch (error) {
-            throw new HttpException('Error in UserService createUser: ', error);
+            this.logger.error('Error in UserService createUser: ' + error);
+            throw error;
+        }
+    }
+
+    async registerUser(dto: RegisterUserDto): Promise<any> {
+        try {
+            const existingUser = await this.userRepository.findOneByCondition({
+                email: dto.email,
+            });
+
+            if (existingUser) {
+                throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
+            }
+
+            const user: SchemaCreateDocument<User> = {
+                ...(dto as any),
+            };
+
+            return await this.userRepository.createOne(user);
+        } catch (error) {
+            this.logger.error('Error in UserService createUser: ' + error);
+            throw error;
         }
     }
 

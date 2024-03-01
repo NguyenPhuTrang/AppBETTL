@@ -47,6 +47,22 @@ export class CreateProductDto {
     })
     @JoiValidate(Joi.string().trim().max(URL_MAX_LENGTH).required())
     image: string;
+
+    @ApiProperty({
+        type: String,
+        maxLength: INPUT_TEXT_MAX_LENGTH,
+        default: 'Product rating',
+    })
+    @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH).required())
+    rating: number;
+
+    @ApiProperty({
+        type: String,
+        maxLength: INPUT_TEXT_MAX_LENGTH,
+        default: 'Product sale',
+    })
+    @JoiValidate(Joi.string().trim().max(URL_MAX_LENGTH).required())
+    sale: string;
 }
 
 export class UpdateProductDto {

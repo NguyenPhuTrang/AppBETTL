@@ -14,7 +14,23 @@ export class AuthController extends BaseController {
     @ApiBody({ type: RegisterUserDto })
     @Post('register')
     async register(@Body() registerUserDto: RegisterUserDto) {
-        return this.authService.register(registerUserDto);
+        try {
+            const res = await this.authService.register(registerUserDto);
+            return new SuccessResponse(res);
+        } catch (error) {
+            this.handleError(error);   
+        }
+    }
+
+    @ApiBody({ type: RegisterUserDto })
+    @Post('register-user')
+    async registerUser(@Body() registerUserDto: RegisterUserDto) {
+        try {
+            const res = await this.authService.registerUser(registerUserDto);
+            return new SuccessResponse(res);
+        } catch (error) {
+            this.handleError(error);   
+        }
     }
 
     @ApiBody({ type: LoginUserDto })

@@ -25,6 +25,20 @@ export class ProductRepository extends BaseRepository<Product> {
         super(productModel);
     }
 
+    async findOneByCondition(
+        condition: Record<string, any>,
+    ): Promise<Product | null> {
+        try {
+            const result = await this.productModel.findOne(condition);
+            return result || null;
+        } catch (error) {
+            this.logger.error(
+                'Error in ProductRepository findOneByCondition:'+ error,
+            )
+            throw error;
+        }
+    }
+
     async findAllAndCountProductByQuery(query: GetProductListQuery) {
         try {
             const {
@@ -73,11 +87,11 @@ export class ProductRepository extends BaseRepository<Product> {
                                 $sort: {
                                     [orderBy]:
                                         orderDirection === OrderDirection.ASC
-                                          ? 1
+                                            ? 1
                                             : -1,
                                     ['_id']:
                                         orderDirection === OrderDirection.ASC
-                                          ? 1
+                                            ? 1
                                             : -1,
                                 },
                             },
@@ -97,7 +111,7 @@ export class ProductRepository extends BaseRepository<Product> {
             };
         } catch (error) {
             this.logger.error(
-                'Error in ProductRepository findAllAndCountProductByQuery:'+ error,
+                'Error in ProductRepository findAllAndCountProductByQuery:' + error,
             );
             throw error;
         }

@@ -1,5 +1,5 @@
 import { BaseService } from '../../../common/base/base.service';
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { Types } from 'mongoose';
 import {
     CreateUserDto,
@@ -10,6 +10,7 @@ import {
 import { User } from '../../../database/schemas/user.schema';
 import { UserRepository } from '../user.repository';
 import { UserAttributesForDetail } from '../user.constant';
+import { HttpStatus } from '../../../common/constants';
 
 @Injectable()
 export class UserService extends BaseService<User, UserRepository> {
@@ -19,6 +20,13 @@ export class UserService extends BaseService<User, UserRepository> {
 
     async createUser(dto: CreateUserDto) {
         try {
+            const existingUser = await this.userRepository.findOneByCondition({
+                email: dto.email,
+            });
+    
+            if (existingUser) {
+                throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
+            }
             const user: SchemaCreateDocument<User> = {
                 ...(dto as any),
             };

@@ -14,6 +14,8 @@ export const ProductAttributesForList: (keyof Product)[] = [
     'quantity',
     'description',
     'image',
+    'rating',
+    'sale',
     'createdAt',
     'updatedAt',
 ];

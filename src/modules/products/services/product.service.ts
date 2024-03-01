@@ -1,10 +1,11 @@
 import { BaseService } from '../../../common/base/base.service';
 import { Product } from '../../../database/schemas/product.schema';
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { ProductRepository } from '../product.repository';
 import { CreateProductDto, GetProductListQuery, UpdateProductDto } from '../product.interface';
 import { ProductAttributesForDetail } from '../product.constant';
+import { HttpStatus } from '../../../common/constants';
 
 @Injectable()
 export class ProductService extends BaseService<Product, ProductRepository> {
@@ -16,12 +17,19 @@ export class ProductService extends BaseService<Product, ProductRepository> {
 
     async createProduct(dto: CreateProductDto) {
         try {
+            const  existingProduct = await this.productRepository.findOneByCondition({
+                name: dto.name
+            })
+            if (existingProduct) {
+                throw new HttpException('Product already exists', HttpStatus.BAD_REQUEST);
+            }
             const product: SchemaCreateDocument<Product> = {
                 ...(dto as any),
             };
             return await this.productRepository.createOne(product);
         } catch (error) {
             this.logger.error('Error in ProductService createProduct: ' + error);
+            throw error;
         }
     }
 

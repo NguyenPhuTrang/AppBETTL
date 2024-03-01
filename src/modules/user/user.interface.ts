@@ -60,7 +60,7 @@ export class CreateUserDto {
         default: '',
     })
     @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH))
-    password: string;
+    password?: string;
 }
 
 export class UpdateUserDto {

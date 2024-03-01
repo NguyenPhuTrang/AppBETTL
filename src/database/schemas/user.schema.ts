@@ -14,13 +14,13 @@ export type UserDocument = SchemaDocument<User>;
     },
 })
 export class User extends MongoBaseSchema {
-    @Prop({ required: true, type: String })
+    @Prop({ required: false, type: String })
     name: string;
-    @Prop({ required: true, type: String })
+    @Prop({ required: false, type: String })
     email: string;
-    @Prop({ required: true, type: String })
+    @Prop({ required: false, type: String })
     birthday: string;
-    @Prop({ required: true, type: String })
+    @Prop({ required: false, type: String })
     numberPhone: string;
     @Prop({ required: true, type: String })
     avatarUrl: string;
