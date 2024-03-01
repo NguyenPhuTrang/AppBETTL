@@ -7,7 +7,7 @@ import { User } from '../database/schemas/user.schema';
 import { SuccessResponse } from '../common/helpers/response';
 import { Request } from 'express';
 import { HttpStatus } from '../common/constants';
-import { BaseService } from '@/common/base/base.service';
+import { BaseService } from '../common/base/base.service';
 @Injectable()
 export class AuthService extends BaseService {
     constructor(
