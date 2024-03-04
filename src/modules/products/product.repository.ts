@@ -16,6 +16,7 @@ import {
 import { GetProductListQuery } from './product.interface';
 import { ProductAttributesForList } from './product.constant';
 import { parseMongoProjection } from '../../common/helpers/commonFunctions';
+import { log } from 'winston';
 @Injectable()
 export class ProductRepository extends BaseRepository<Product> {
     constructor(
@@ -33,7 +34,7 @@ export class ProductRepository extends BaseRepository<Product> {
             return result || null;
         } catch (error) {
             this.logger.error(
-                'Error in ProductRepository findOneByCondition:'+ error,
+                'Error in ProductRepository findOneByCondition:' + error,
             )
             throw error;
         }
@@ -48,23 +49,54 @@ export class ProductRepository extends BaseRepository<Product> {
                 orderBy = DEFAULT_ORDER_BY,
                 orderDirection = DEFAULT_ORDER_DIRECTION,
                 name = '',
+                rating = '',
+                price = ''
             } = query;
+            
+
             const matchQuery: FilterQuery<Product> = {};
             matchQuery.$and = [
                 {
                     ...softDeleteCondition,
                 },
             ];
+
+            if (rating) {
+                matchQuery.$and.push({
+                    rating,
+                });
+            }
+
             if (keyword) {
                 matchQuery.$and.push({
                     name: { $regex: `.*${keyword}.*`, $options: 'i' },
                 });
             }
+
             if (name) {
                 matchQuery.$and.push({
                     name,
                 });
             }
+            
+            const sortStage: any = {};
+            if (!price) {
+                sortStage.$sort = {
+                    [orderBy]: orderDirection === OrderDirection.ASC ? 1 : -1,
+                };
+            } else {
+                console.log(price);
+                if (price === 'asc') {
+                    sortStage.$sort = {
+                        price:  1,
+                    };
+                } else {
+                    sortStage.$sort = {
+                        price: -1,
+                    };
+                }
+            }
+
             const [result] = await this.productModel.aggregate([
                 {
                     $addFields: {
@@ -83,18 +115,7 @@ export class ProductRepository extends BaseRepository<Product> {
                     $facet: {
                         count: [{ $count: 'total' }],
                         data: [
-                            {
-                                $sort: {
-                                    [orderBy]:
-                                        orderDirection === OrderDirection.ASC
-                                            ? 1
-                                            : -1,
-                                    ['_id']:
-                                        orderDirection === OrderDirection.ASC
-                                            ? 1
-                                            : -1,
-                                },
-                            },
+                            sortStage,
                             {
                                 $skip: (page - 1) * limit,
                             },
@@ -103,17 +124,19 @@ export class ProductRepository extends BaseRepository<Product> {
                             },
                         ],
                     },
-                }
+                },
             ]);
+
             return {
                 totalItems: result?.count?.[0]?.total || 0,
                 items: result?.data || [],
             };
         } catch (error) {
             this.logger.error(
-                'Error in ProductRepository findAllAndCountProductByQuery:' + error,
+                'Error in UserRepository findAllAndCountUserByQuery: ' + error,
             );
             throw error;
         }
     }
+
 }

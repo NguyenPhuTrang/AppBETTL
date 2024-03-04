@@ -122,6 +122,22 @@ export class GetProductListQuery extends CommonListQuery {
         maxLength: INPUT_TEXT_MAX_LENGTH,
         default: "Product'name for filter",
     })
-    @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH).optional())
+    @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH).optional().allow(null, ''))
     name?: string;
+
+    @ApiProperty({
+        type: String,
+        maxLength: INPUT_TEXT_MAX_LENGTH,
+        default: "Product'price for filter",
+    })
+    @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH).optional())
+    price?: string;
+
+    @ApiProperty({
+        type: String,
+        maxLength: INPUT_TEXT_MAX_LENGTH,
+        default: "Product'rating for filter",
+    })
+    @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH).optional())
+    rating?: string;
 }

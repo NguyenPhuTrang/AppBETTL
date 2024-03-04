@@ -22,8 +22,6 @@ export class AuthService extends BaseService {
                 email: loginUserDto.email,
             });
 
-            console.log(user);
-
             if (!user) {
                 throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);
             }
