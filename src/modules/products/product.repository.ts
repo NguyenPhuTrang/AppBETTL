@@ -85,7 +85,6 @@ export class ProductRepository extends BaseRepository<Product> {
                     [orderBy]: orderDirection === OrderDirection.ASC ? 1 : -1,
                 };
             } else {
-                console.log(price);
                 if (price === 'asc') {
                     sortStage.$sort = {
                         price:  1,
