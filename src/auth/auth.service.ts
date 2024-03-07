@@ -4,10 +4,10 @@ import { LoginAdminDto, LoginUserDto, RegisterUserDto } from './auth.interface';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../database/schemas/user.schema';
-import { SuccessResponse } from '../common/helpers/response';
 import { Request } from 'express';
 import { HttpStatus } from '../common/constants';
 import { BaseService } from '../common/base/base.service';
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class AuthService extends BaseService {
     constructor(
@@ -145,6 +145,7 @@ export class AuthService extends BaseService {
             if (existingUser) {
                 throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
             }
+            const hashedPassword = await bcrypt.hash(dto.password, 10);
     
             const user: SchemaCreateDocument<User> = {
                 ...(dto as any),

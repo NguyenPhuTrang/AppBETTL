@@ -16,7 +16,6 @@ import {
 import { GetProductListQuery } from './product.interface';
 import { ProductAttributesForList } from './product.constant';
 import { parseMongoProjection } from '../../common/helpers/commonFunctions';
-import { log } from 'winston';
 @Injectable()
 export class ProductRepository extends BaseRepository<Product> {
     constructor(
@@ -52,7 +51,6 @@ export class ProductRepository extends BaseRepository<Product> {
                 rating = '',
                 price = ''
             } = query;
-            
 
             const matchQuery: FilterQuery<Product> = {};
             matchQuery.$and = [
@@ -78,7 +76,7 @@ export class ProductRepository extends BaseRepository<Product> {
                     name,
                 });
             }
-            
+
             const sortStage: any = {};
             if (!price) {
                 sortStage.$sort = {
@@ -87,19 +85,22 @@ export class ProductRepository extends BaseRepository<Product> {
             } else {
                 if (price === 'asc') {
                     sortStage.$sort = {
-                        price:  1,
-                    };
-                } else {
-                    sortStage.$sort = {
-                        price: -1,
+                        price: 1
                     };
                 }
+                if (price === 'desc') {
+                    sortStage.$sort = {
+                        price: -1
+                    };
+                }
+
             }
 
             const [result] = await this.productModel.aggregate([
                 {
                     $addFields: {
                         id: { $toString: '$_id' },
+                        price: { $toDouble: "$price" }
                     },
                 },
                 {
