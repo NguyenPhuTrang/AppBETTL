@@ -26,6 +26,10 @@ export class AuthService extends BaseService {
                 throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);
             }
 
+            if (user && user.deletedAt !== null) {
+                throw new HttpException('This user has been deleted', HttpStatus.UNAUTHORIZED);
+            }
+
             if (user.role !== 'user') {
                 throw new HttpException('User is not a regular user', HttpStatus.UNAUTHORIZED);
             }
@@ -55,6 +59,10 @@ export class AuthService extends BaseService {
 
             if (!user) {
                 throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);
+            }
+
+            if (user && user.deletedAt !== null) {
+                throw new HttpException('This user has been deleted', HttpStatus.UNAUTHORIZED);
             }
 
             if (user.role !== 'admin') {
@@ -141,16 +149,16 @@ export class AuthService extends BaseService {
             const existingUser = await this.userRepository.findOneByCondition({
                 email: dto.email,
             });
-    
-            if (existingUser) {
+
+            if (existingUser && existingUser.deletedAt === null) {
                 throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
             }
             const hashedPassword = await bcrypt.hash(dto.password, 10);
-    
+
             const user: SchemaCreateDocument<User> = {
                 ...(dto as any),
             };
-    
+
             return await this.userRepository.createOne(user);
         } catch (error) {
             this.logger.error('Error in UserService createUser: ' + error);
@@ -164,7 +172,7 @@ export class AuthService extends BaseService {
                 email: dto.email,
             });
 
-            if (existingUser) {
+            if (existingUser && existingUser.deletedAt === null) {
                 throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
             }
 

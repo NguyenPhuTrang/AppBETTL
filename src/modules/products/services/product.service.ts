@@ -18,9 +18,9 @@ export class ProductService extends BaseService<Product, ProductRepository> {
     async createProduct(dto: CreateProductDto) {
         try {
             const  existingProduct = await this.productRepository.findOneByCondition({
-                name: dto.name
+                name: dto.name,
             })
-            if (existingProduct) {
+            if (existingProduct && existingProduct.deletedAt === null) {
                 throw new HttpException('Product already exists', HttpStatus.BAD_REQUEST);
             }
             const product: SchemaCreateDocument<Product> = {
