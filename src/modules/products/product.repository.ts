@@ -49,7 +49,8 @@ export class ProductRepository extends BaseRepository<Product> {
                 orderDirection = DEFAULT_ORDER_DIRECTION,
                 name = '',
                 rating = '',
-                price = ''
+                price = '',
+                sale = '',
             } = query;
 
             const matchQuery: FilterQuery<Product> = {};
@@ -65,9 +66,19 @@ export class ProductRepository extends BaseRepository<Product> {
                 });
             }
 
-            if (keyword) {
+            if (sale) {
                 matchQuery.$and.push({
-                    name: { $regex: `.*${keyword}.*`, $options: 'i' },
+                    sale,
+                })
+            }
+
+            if (keyword) {
+                const keywordRegex = new RegExp(`.*${keyword}.*`, 'i');
+                matchQuery.$and.push({
+                    $or: [
+                        { name: { $regex: keywordRegex } },
+                        { description: { $regex: keywordRegex } }
+                    ]
                 });
             }
 
