@@ -1,10 +1,11 @@
-import { Body, Controller, ExecutionContext, Get, Headers, Post, Req } from '@nestjs/common';
+import { Body, Controller, ExecutionContext, Get, Headers, Post, Req, UseGuards } from '@nestjs/common';
 import { LoginAdminDto, LoginUserDto, RegisterUserDto } from './auth.interface';
 import { AuthService } from './auth.service';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { BaseController } from '../common/base/base.controller';
 import { Request } from 'express';
 import { SuccessResponse } from '../common/helpers/response';
+import { AuthGuard } from './auth.guard';
 
 @ApiTags('Auth APIs')
 @Controller('auth')
@@ -65,6 +66,7 @@ export class AuthController extends BaseController {
         }
     }
 
+    @UseGuards(AuthGuard)
     @Get('get-user-profile')
     async getUser(@Req() req: Request) {
         try {

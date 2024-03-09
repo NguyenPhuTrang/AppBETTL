@@ -1,6 +1,6 @@
 import { BaseRepository } from '../../common/base/base.repository';
 import { User, UserDocument } from '../../database/schemas/user.schema';
-
+import * as bcrypt from 'bcrypt';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model } from 'mongoose';
@@ -64,7 +64,8 @@ export class UserRepository extends BaseRepository<User> {
     }
 
     async comparePassword(user, password): Promise<boolean> {
-        return password === user.password;
+        const isMatch = await bcrypt.compare(password, user.password);
+        return isMatch;
     }
 
     async findAllAndCountUserByQuery(query: GetUserListQuery) {
@@ -103,7 +104,7 @@ export class UserRepository extends BaseRepository<User> {
                 });
             }
 
-            if(role) {
+            if (role) {
                 matchQuery.$and.push({
                     role,
                 });

@@ -44,6 +44,7 @@ export class UserController extends BaseController {
         super();
     }
 
+    @UseGuards(AuthGuard)
     @ApiOperation({ summary: 'Create User' })
     @ApiResponseError([SwaggerApiType.CREATE])
     @ApiResponseSuccess(createUserSuccessResponseExample)
@@ -61,6 +62,7 @@ export class UserController extends BaseController {
         }
     }
 
+    @UseGuards(AuthGuard)
     @ApiOperation({ summary: 'Update User by id' })
     @ApiResponseError([SwaggerApiType.UPDATE])
     @ApiResponseSuccess(updateUserSuccessResponseExample)
@@ -95,6 +97,7 @@ export class UserController extends BaseController {
         }
     }
 
+    @UseGuards(AuthGuard)
     @ApiOperation({ summary: 'Delete User by id' })
     @ApiResponseError([SwaggerApiType.DELETE])
     @ApiResponseSuccess(deleteUserSuccessResponseExample)
@@ -124,6 +127,7 @@ export class UserController extends BaseController {
         }
     }
 
+    @UseGuards(AuthGuard)
     @ApiOperation({ summary: 'Get User detail by id' })
     @ApiResponseError([SwaggerApiType.GET_DETAIL])
     @ApiResponseSuccess(getUserDetailSuccessResponseExample)

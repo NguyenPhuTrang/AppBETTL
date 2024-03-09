@@ -78,7 +78,7 @@ export class RegisterUserDto {
         default: 'User avatar',
     })
     @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH).required())
-    avatar: string;
+    avatarUrl: string;
 
     @ApiProperty({
         type: String,

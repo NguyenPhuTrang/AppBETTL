@@ -33,7 +33,7 @@ export class ProductController extends BaseController {
     constructor(private readonly productService: ProductService) {
         super();
     }
-
+    @UseGuards(AuthGuard)
     @ApiOperation({ summary: 'Create Product' })
     @ApiResponseError([SwaggerApiType.CREATE])
     @ApiResponseSuccess(createProductSuccessResponseExample)
@@ -50,7 +50,7 @@ export class ProductController extends BaseController {
             this.handleError(error);
         }
     }
-
+    @UseGuards(AuthGuard)
     @ApiOperation({ summary: 'Update Product by id' })
     @ApiResponseError([SwaggerApiType.UPDATE])
     @ApiResponseSuccess(updateProductSuccessResponseExample)
@@ -83,7 +83,7 @@ export class ProductController extends BaseController {
             this.handleError(error);
         }
     }
-
+    @UseGuards(AuthGuard)
     @ApiOperation({ summary: 'Delete Product by id' })
     @ApiResponseError([SwaggerApiType.DELETE])
     @ApiResponseSuccess(deleteProductSuccessResponseExample)
@@ -111,7 +111,7 @@ export class ProductController extends BaseController {
             this.handleError(error);
         }
     }
-
+    @UseGuards(AuthGuard)
     @ApiOperation({ summary: 'Get Product details by id' })
     @ApiResponseError([SwaggerApiType.GET_DETAIL])
     @ApiResponseSuccess(getProductDetailSuccessResponseExample)
@@ -138,7 +138,6 @@ export class ProductController extends BaseController {
         }
     }
 
-    // @UseGuards(AuthGuard)
     @ApiOperation({ summary: 'Get Product list' })
     @ApiResponseError([SwaggerApiType.GET_LIST])
     @ApiResponseSuccess(getProductListSuccessResponseExample)

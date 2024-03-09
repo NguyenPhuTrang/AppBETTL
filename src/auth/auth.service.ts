@@ -156,7 +156,14 @@ export class AuthService extends BaseService {
             const hashedPassword = await bcrypt.hash(dto.password, 10);
 
             const user: SchemaCreateDocument<User> = {
-                ...(dto as any),
+                name: dto.name,
+                email: dto.email,
+                birthday: dto.birthday,
+                numberPhone: dto.numberPhone,
+                avatarUrl: dto.avatarUrl,
+                role: dto.role,
+                refresh_token: "",
+                password: hashedPassword,
             };
 
             return await this.userRepository.createOne(user);
@@ -176,8 +183,17 @@ export class AuthService extends BaseService {
                 throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
             }
 
+            const hashedPassword = await bcrypt.hash(dto.password, 10);
+
             const user: SchemaCreateDocument<User> = {
-                ...(dto as any),
+                name: dto.name,
+                email: dto.email,
+                birthday: dto.birthday,
+                numberPhone: dto.numberPhone,
+                avatarUrl: dto.avatarUrl,
+                role: dto.role,
+                refresh_token: "",
+                password: hashedPassword,
             };
 
             return await this.userRepository.createOne(user);
