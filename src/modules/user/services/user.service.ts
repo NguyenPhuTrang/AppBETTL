@@ -20,8 +20,9 @@ export class UserService extends BaseService<User, UserRepository> {
 
     async createUser(dto: CreateUserDto) {
         try {
-            const existingUser = await this.userRepository.findOneByCondition({
+            const existingUser = await this.userRepository.findOneBy({
                 email: dto.email,
+                deletedAt: null,
             });
     
             if (existingUser && existingUser.deletedAt === null) {

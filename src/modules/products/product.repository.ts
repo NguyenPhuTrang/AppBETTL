@@ -39,6 +39,18 @@ export class ProductRepository extends BaseRepository<Product> {
         }
     }
 
+    async findOneBy(condition: Partial<Product>): Promise<Product | null> {
+        try {
+            const result = await this.productModel.findOne(condition);
+            return result || null;
+        } catch (error) {
+            this.logger.error(
+                'Error in ProductRepository findOneBy:' + error,
+            )
+            throw error;
+        }
+    }
+
     async findAllAndCountProductByQuery(query: GetProductListQuery) {
         try {
             const {

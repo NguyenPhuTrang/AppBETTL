@@ -18,7 +18,7 @@ export class AuthService extends BaseService {
 
     async loginUser(loginUserDto: LoginUserDto): Promise<any> {
         try {
-            const user = await this.userRepository.findOneByCondition({
+            const user = await this.userRepository.findOneBy({
                 email: loginUserDto.email,
             });
 
@@ -53,7 +53,7 @@ export class AuthService extends BaseService {
 
     async loginAdmin(loginAdminDto: LoginAdminDto): Promise<any> {
         try {
-            const user = await this.userRepository.findOneByCondition({
+            const user = await this.userRepository.findOneBy({
                 email: loginAdminDto.email,
             });
 
@@ -146,11 +146,12 @@ export class AuthService extends BaseService {
 
     async register(dto: RegisterUserDto): Promise<any> {
         try {
-            const existingUser = await this.userRepository.findOneByCondition({
+            const existingUser = await this.userRepository.findOneBy({
                 email: dto.email,
+                deletedAt: null
             });
 
-            if (existingUser && existingUser.deletedAt === null) {
+            if (existingUser) {
                 throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
             }
             const hashedPassword = await bcrypt.hash(dto.password, 10);
@@ -175,8 +176,9 @@ export class AuthService extends BaseService {
 
     async registerUser(dto: RegisterUserDto): Promise<any> {
         try {
-            const existingUser = await this.userRepository.findOneByCondition({
+            const existingUser = await this.userRepository.findOneBy({
                 email: dto.email,
+                deletedAt: null
             });
 
             if (existingUser && existingUser.deletedAt === null) {
@@ -210,7 +212,7 @@ export class AuthService extends BaseService {
                 secret: this.configService.get<string>('SECRET')
             });
 
-            const user = await this.userRepository.findOneByCondition({
+            const user = await this.userRepository.findOneBy({
                 email: verify.email,
             });
 
