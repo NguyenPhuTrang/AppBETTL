@@ -12,6 +12,7 @@ import { TransformInterceptor } from './modules/common/transform.interceptor';
 import { HeaderMiddleware } from './modules/middleware/header.middleware';
 import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './modules/products/products.module';
+import { ReleaseQualityModule } from './modules/release-quality/release-quality.module';
 @Module({
     imports: [
         ConfigModule.forRoot({
@@ -25,6 +26,7 @@ import { ProductsModule } from './modules/products/products.module';
         UserModule,
         AuthModule,
         ProductsModule,
+        ReleaseQualityModule,
     ],
     controllers: [AppController],
     providers: [
