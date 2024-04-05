@@ -4,6 +4,7 @@ export const ReleaseQualityAttributesForList: (keyof ReleaseQuality)[] = [
     '_id',
     'id',
     'name',
+    'changeLog',
     'createdAt',
     'updatedAt',
 ];
