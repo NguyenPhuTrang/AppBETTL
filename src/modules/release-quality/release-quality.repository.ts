@@ -40,6 +40,15 @@ export class ReleaseQualityRepository extends BaseRepository<ReleaseQuality> {
                 },
             ];
 
+            if (keyword) {
+                const keywordRegex = new RegExp(`.*${keyword}.*`, 'i');
+                matchQuery.$and.push({
+                    $or: [
+                        { name: { $regex: keywordRegex } },
+                    ]
+                });
+            }
+
             const [result] = await this.releaseModel.aggregate([
                 {
                     $addFields: {
