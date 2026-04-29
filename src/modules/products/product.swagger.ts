@@ -23,7 +23,7 @@ export const updateProductSuccessResponseExample = {
     description: 'new description',
     image: 'new image',
     id: '659e7592b3b56d0946b3c7b5',
-}
+};
 
 export const deleteProductSuccessResponseExample = {
     id: '659e7592b3b56d0946b3c7b5',
@@ -37,7 +37,7 @@ export const getProductDetailSuccessResponseExample = {
     description: 'get description',
     image: 'get image',
     id: '659e7592b3b56d0946b3c7b5',
-}
+};
 
 export const getProductListSuccessResponseExample = {
     totalItems: 1,
@@ -54,4 +54,4 @@ export const getProductListSuccessResponseExample = {
             id: '659e7592b3b56d0946b3c7b5',
         },
     ],
-}
+};

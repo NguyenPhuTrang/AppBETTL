@@ -1,4 +1,8 @@
-import { INPUT_PHONE_MAX_LENGTH, INPUT_TEXT_MAX_LENGTH, URL_MAX_LENGTH } from '../../common/constants';
+import {
+    INPUT_PHONE_MAX_LENGTH,
+    INPUT_TEXT_MAX_LENGTH,
+    URL_MAX_LENGTH,
+} from '../../common/constants';
 import { JoiValidate } from '../../common/decorators/validator.decorator';
 import { UserOrderBy } from './user.constant';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -19,7 +23,9 @@ export class CreateUserDto {
         maxLength: INPUT_TEXT_MAX_LENGTH,
         default: 'user@example.com',
     })
-    @JoiValidate(Joi.string().trim().email().max(INPUT_TEXT_MAX_LENGTH).required())
+    @JoiValidate(
+        Joi.string().trim().email().max(INPUT_TEXT_MAX_LENGTH).required(),
+    )
     email: string;
 
     @ApiProperty({
@@ -77,7 +83,9 @@ export class UpdateUserDto {
         maxLength: INPUT_TEXT_MAX_LENGTH,
         default: 'user@example.com',
     })
-    @JoiValidate(Joi.string().trim().email().max(INPUT_TEXT_MAX_LENGTH).required())
+    @JoiValidate(
+        Joi.string().trim().email().max(INPUT_TEXT_MAX_LENGTH).required(),
+    )
     email: string;
 
     @ApiProperty({

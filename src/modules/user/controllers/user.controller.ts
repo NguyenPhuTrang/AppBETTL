@@ -9,7 +9,10 @@ import {
     Query,
     UseGuards,
 } from '@nestjs/common';
-import { ErrorResponse, SuccessResponse } from '../../../common/helpers/response';
+import {
+    ErrorResponse,
+    SuccessResponse,
+} from '../../../common/helpers/response';
 import { HttpStatus, mongoIdSchema } from '../../../common/constants';
 import {
     CreateUserDto,
@@ -69,7 +72,7 @@ export class UserController extends BaseController {
     @ApiBody({ type: UpdateUserDto })
     @Patch(':id')
     async updateUser(
-        @Param('id', new JoiValidationPipe(mongoIdSchema)) 
+        @Param('id', new JoiValidationPipe(mongoIdSchema))
         id: string,
         @Body(new TrimBodyPipe(), new JoiValidationPipe())
         dto: UpdateUserDto,
@@ -103,7 +106,7 @@ export class UserController extends BaseController {
     @ApiResponseSuccess(deleteUserSuccessResponseExample)
     @Delete(':id')
     async deleteUser(
-        @Param('id', new JoiValidationPipe(mongoIdSchema)) 
+        @Param('id', new JoiValidationPipe(mongoIdSchema))
         id: string,
     ) {
         try {

@@ -14,7 +14,9 @@ export class AuthService extends BaseService {
         private readonly userRepository: UserRepository,
         private readonly jwtService: JwtService,
         private configService: ConfigService,
-    ) { super() }
+    ) {
+        super();
+    }
 
     async loginUser(loginUserDto: LoginUserDto): Promise<any> {
         try {
@@ -23,15 +25,24 @@ export class AuthService extends BaseService {
             });
 
             if (!user) {
-                throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);
+                throw new HttpException(
+                    'User not found',
+                    HttpStatus.UNAUTHORIZED,
+                );
             }
 
             if (user && user.deletedAt !== null) {
-                throw new HttpException('This user has been deleted', HttpStatus.UNAUTHORIZED);
+                throw new HttpException(
+                    'This user has been deleted',
+                    HttpStatus.UNAUTHORIZED,
+                );
             }
 
             if (user.role !== 'user') {
-                throw new HttpException('User is not a regular user', HttpStatus.UNAUTHORIZED);
+                throw new HttpException(
+                    'User is not a regular user',
+                    HttpStatus.UNAUTHORIZED,
+                );
             }
 
             const isPasswordValid = await this.userRepository.comparePassword(
@@ -40,7 +51,10 @@ export class AuthService extends BaseService {
             );
 
             if (!isPasswordValid) {
-                throw new HttpException('Incorrect password', HttpStatus.UNAUTHORIZED);
+                throw new HttpException(
+                    'Incorrect password',
+                    HttpStatus.UNAUTHORIZED,
+                );
             }
 
             const payload = { id: user.id, email: user.email };
@@ -50,7 +64,6 @@ export class AuthService extends BaseService {
         }
     }
 
-
     async loginAdmin(loginAdminDto: LoginAdminDto): Promise<any> {
         try {
             const user = await this.userRepository.findOneBy({
@@ -58,19 +71,36 @@ export class AuthService extends BaseService {
             });
 
             if (!user) {
-                throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);
+                throw new HttpException(
+                    'User not found',
+                    HttpStatus.UNAUTHORIZED,
+                );
             }
 
             if (user && user.deletedAt !== null) {
-                throw new HttpException('This user has been deleted', HttpStatus.UNAUTHORIZED);
+                throw new HttpException(
+                    'This user has been deleted',
+                    HttpStatus.UNAUTHORIZED,
+                );
             }
 
             if (user.role !== 'admin') {
-                throw new HttpException('User is not an admin', HttpStatus.UNAUTHORIZED);
+                throw new HttpException(
+                    'User is not an admin',
+                    HttpStatus.UNAUTHORIZED,
+                );
             }
 
-            if (!(await this.userRepository.comparePassword(user, loginAdminDto.password))) {
-                throw new HttpException('Incorrect password', HttpStatus.UNAUTHORIZED);
+            if (
+                !(await this.userRepository.comparePassword(
+                    user,
+                    loginAdminDto.password,
+                ))
+            ) {
+                throw new HttpException(
+                    'Incorrect password',
+                    HttpStatus.UNAUTHORIZED,
+                );
             }
 
             const payload = { id: user.id, email: user.email };
@@ -84,29 +114,53 @@ export class AuthService extends BaseService {
         try {
             const refresh_token = this.extractTokenFromHeader(request);
             const verify = await this.jwtService.verifyAsync(refresh_token, {
-                secret: this.configService.get<string>('SECRET')
-            })
-            const checkExistToken = await this.userRepository.findOneBy({ email: verify.email });
+                secret: this.configService.get<string>('SECRET'),
+            });
+            const checkExistToken = await this.userRepository.findOneBy({
+                email: verify.email,
+            });
             if (checkExistToken) {
-                return this.generateToken({ id: verify.id, email: verify.email });
+                return this.generateToken({
+                    id: verify.id,
+                    email: verify.email,
+                });
             } else {
-                throw new HttpException('Refresh token is not valid', HttpStatus.BAD_REQUEST);
+                throw new HttpException(
+                    'Refresh token is not valid',
+                    HttpStatus.BAD_REQUEST,
+                );
             }
         } catch (error) {
             if (error.name === 'TokenExpiredError') {
-                throw new HttpException('Refresh token has expired', HttpStatus.UNAUTHORIZED);
+                throw new HttpException(
+                    'Refresh token has expired',
+                    HttpStatus.UNAUTHORIZED,
+                );
             } else if (error.name === 'JsonWebTokenError') {
-                throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);
+                throw new HttpException(
+                    'Invalid refresh token',
+                    HttpStatus.UNAUTHORIZED,
+                );
             } else {
-                throw new HttpException('Error verifying refresh token', HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new HttpException(
+                    'Error verifying refresh token',
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                );
             }
         }
     }
 
-    private async generateToken(payload: { id: string; email: string }): Promise<any> {
+    private async generateToken(payload: {
+        id: string;
+        email: string;
+    }): Promise<any> {
         const accessToken = await this.jwtService.signAsync(payload);
-        const expInRefreshToken = this.configService.get<string>('EXP_IN_REFRESH_TOKEN');
-        const expInAccessToken = this.configService.get<string>('EXP_IN_ACCESS_TOKEN');
+        const expInRefreshToken = this.configService.get<string>(
+            'EXP_IN_REFRESH_TOKEN',
+        );
+        const expInAccessToken = this.configService.get<string>(
+            'EXP_IN_ACCESS_TOKEN',
+        );
 
         const expiresInRefresh = this.convertTimeToSeconds(expInRefreshToken);
         const expiresIn = this.convertTimeToSeconds(expInAccessToken);
@@ -115,7 +169,10 @@ export class AuthService extends BaseService {
             secret: this.configService.get<string>('SECRET'),
             expiresIn: expiresInRefresh,
         });
-        await this.userRepository.updateRefreshToken(payload.email, refreshToken);
+        await this.userRepository.updateRefreshToken(
+            payload.email,
+            refreshToken,
+        );
         return { accessToken, expiresIn, refreshToken };
     }
 
@@ -148,11 +205,14 @@ export class AuthService extends BaseService {
         try {
             const existingUser = await this.userRepository.findOneBy({
                 email: dto.email,
-                deletedAt: null
+                deletedAt: null,
             });
 
             if (existingUser) {
-                throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
+                throw new HttpException(
+                    'User already exists',
+                    HttpStatus.BAD_REQUEST,
+                );
             }
             const hashedPassword = await bcrypt.hash(dto.password, 10);
 
@@ -163,7 +223,7 @@ export class AuthService extends BaseService {
                 numberPhone: dto.numberPhone,
                 avatarUrl: dto.avatarUrl,
                 role: dto.role,
-                refresh_token: "",
+                refresh_token: '',
                 password: hashedPassword,
             };
 
@@ -178,11 +238,14 @@ export class AuthService extends BaseService {
         try {
             const existingUser = await this.userRepository.findOneBy({
                 email: dto.email,
-                deletedAt: null
+                deletedAt: null,
             });
 
             if (existingUser && existingUser.deletedAt === null) {
-                throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
+                throw new HttpException(
+                    'User already exists',
+                    HttpStatus.BAD_REQUEST,
+                );
             }
 
             const hashedPassword = await bcrypt.hash(dto.password, 10);
@@ -194,7 +257,7 @@ export class AuthService extends BaseService {
                 numberPhone: dto.numberPhone,
                 avatarUrl: dto.avatarUrl,
                 role: dto.role,
-                refresh_token: "",
+                refresh_token: '',
                 password: hashedPassword,
             };
 
@@ -209,7 +272,7 @@ export class AuthService extends BaseService {
         try {
             const accessToken = this.extractTokenFromHeader(request);
             const verify = await this.jwtService.verifyAsync(accessToken, {
-                secret: this.configService.get<string>('SECRET')
+                secret: this.configService.get<string>('SECRET'),
             });
 
             const user = await this.userRepository.findOneBy({
@@ -234,17 +297,28 @@ export class AuthService extends BaseService {
             }
 
             if (error.name === 'TokenExpiredError') {
-                throw new HttpException('Refresh token has expired', HttpStatus.UNAUTHORIZED);
+                throw new HttpException(
+                    'Refresh token has expired',
+                    HttpStatus.UNAUTHORIZED,
+                );
             } else if (error.name === 'JsonWebTokenError') {
-                throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);
+                throw new HttpException(
+                    'Invalid refresh token',
+                    HttpStatus.UNAUTHORIZED,
+                );
             } else {
-                throw new HttpException('Error verifying refresh token', HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new HttpException(
+                    'Error verifying refresh token',
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                );
             }
         }
     }
 
     private extractTokenFromHeader(request: Request): string | undefined {
-        const [type, token] = request.headers.authorization ? request.headers.authorization.split(' ') : [];
+        const [type, token] = request.headers.authorization
+            ? request.headers.authorization.split(' ')
+            : [];
         return type === 'Bearer' ? token : undefined;
     }
 }

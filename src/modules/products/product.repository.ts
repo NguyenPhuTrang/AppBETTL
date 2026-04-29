@@ -1,5 +1,8 @@
 import { BaseRepository } from '../../common/base/base.repository';
-import { Product, ProductDocument } from '../../database/schemas/product.schema';
+import {
+    Product,
+    ProductDocument,
+} from '../../database/schemas/product.schema';
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -16,6 +19,7 @@ import {
 import { GetProductListQuery } from './product.interface';
 import { ProductAttributesForList } from './product.constant';
 import { parseMongoProjection } from '../../common/helpers/commonFunctions';
+
 @Injectable()
 export class ProductRepository extends BaseRepository<Product> {
     constructor(
@@ -34,7 +38,7 @@ export class ProductRepository extends BaseRepository<Product> {
         } catch (error) {
             this.logger.error(
                 'Error in ProductRepository findOneByCondition:' + error,
-            )
+            );
             throw error;
         }
     }
@@ -44,9 +48,7 @@ export class ProductRepository extends BaseRepository<Product> {
             const result = await this.productModel.findOne(condition);
             return result || null;
         } catch (error) {
-            this.logger.error(
-                'Error in ProductRepository findOneBy:' + error,
-            )
+            this.logger.error('Error in ProductRepository findOneBy:' + error);
             throw error;
         }
     }
@@ -63,6 +65,7 @@ export class ProductRepository extends BaseRepository<Product> {
                 rating = '',
                 price = '',
                 sale = '',
+                categoryId = '',
             } = query;
 
             const matchQuery: FilterQuery<Product> = {};
@@ -81,7 +84,14 @@ export class ProductRepository extends BaseRepository<Product> {
             if (sale) {
                 matchQuery.$and.push({
                     sale,
-                })
+                });
+            }
+
+            if (categoryId) {
+                // thêm
+                matchQuery.$and.push({
+                    categoryId,
+                });
             }
 
             if (keyword) {
@@ -89,8 +99,8 @@ export class ProductRepository extends BaseRepository<Product> {
                 matchQuery.$and.push({
                     $or: [
                         { name: { $regex: keywordRegex } },
-                        { description: { $regex: keywordRegex } }
-                    ]
+                        { description: { $regex: keywordRegex } },
+                    ],
                 });
             }
 
@@ -108,22 +118,21 @@ export class ProductRepository extends BaseRepository<Product> {
             } else {
                 if (price === 'asc') {
                     sortStage.$sort = {
-                        price: 1
+                        price: 1,
                     };
                 }
                 if (price === 'desc') {
                     sortStage.$sort = {
-                        price: -1
+                        price: -1,
                     };
                 }
-
             }
 
             const [result] = await this.productModel.aggregate([
                 {
                     $addFields: {
                         id: { $toString: '$_id' },
-                        price: { $toDouble: "$price" }
+                        price: { $toDouble: '$price' },
                     },
                 },
                 {
@@ -161,5 +170,4 @@ export class ProductRepository extends BaseRepository<Product> {
             throw error;
         }
     }
-
 }

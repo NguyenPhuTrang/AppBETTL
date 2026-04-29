@@ -13,6 +13,8 @@ import { HeaderMiddleware } from './modules/middleware/header.middleware';
 import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './modules/products/products.module';
 import { ReleaseQualityModule } from './modules/release-quality/release-quality.module';
+import { CategoryModule } from './modules/category/category.module';
+import { CartModule } from './modules/cart/cart.module';
 @Module({
     imports: [
         ConfigModule.forRoot({
@@ -27,6 +29,8 @@ import { ReleaseQualityModule } from './modules/release-quality/release-quality.
         AuthModule,
         ProductsModule,
         ReleaseQualityModule,
+        CategoryModule,
+        CartModule,
     ],
     controllers: [AppController],
     providers: [

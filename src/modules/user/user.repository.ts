@@ -77,7 +77,7 @@ export class UserRepository extends BaseRepository<User> {
                 orderBy = DEFAULT_ORDER_BY,
                 orderDirection = DEFAULT_ORDER_DIRECTION,
                 name = '',
-                role = 'user'
+                role = 'user',
             } = query;
 
             const matchQuery: FilterQuery<User> = {};
@@ -94,7 +94,7 @@ export class UserRepository extends BaseRepository<User> {
                         { name: { $regex: keywordRegex } },
                         { email: { $regex: keywordRegex } },
                         { numberPhone: { $regex: keywordRegex } },
-                    ]
+                    ],
                 });
             }
 

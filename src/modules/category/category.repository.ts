@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
 import { BaseRepository } from '../../common/base/base.repository';
+import {
+    Category,
+    CategoryDocument,
+} from '../../database/schemas/category.schema';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model } from 'mongoose';
-import {
-    ReleaseQuality,
-    ReleaseQualityDocument,
-} from '../../database/schemas/release-quality.schema';
-import { GetReleaseListQuery } from './interface';
+import { GetCategoryListQuery } from './category.interface';
 import {
     DEFAULT_FIRST_PAGE,
     DEFAULT_LIMIT_FOR_PAGINATION,
@@ -16,18 +16,32 @@ import {
     softDeleteCondition,
 } from '../../common/constants';
 import { parseMongoProjection } from '../../common/helpers/commonFunctions';
-import { ReleaseQualityAttributesForList } from './release-quality.constant';
+import { CategoryAttributesForList } from './category.constant';
 
 @Injectable()
-export class ReleaseQualityRepository extends BaseRepository<ReleaseQuality> {
+export class CategoryRepository extends BaseRepository<Category> {
     constructor(
-        @InjectModel(ReleaseQuality.name)
-        private readonly releaseModel: Model<ReleaseQualityDocument>,
+        @InjectModel(Category.name)
+        private readonly categoryModel: Model<CategoryDocument>,
     ) {
-        super(releaseModel);
+        super(categoryModel);
     }
 
-    async findAllAndCountReleaseByQuery(query: GetReleaseListQuery) {
+    async findOneByCondition(
+        condition: Record<string, any>,
+    ): Promise<Category | null> {
+        try {
+            const category = await this.categoryModel.findOne(condition);
+            return category || null;
+        } catch (error) {
+            this.logger.error(
+                'Error in CategoryRepository findOneByCondition: ' + error,
+            );
+            throw error;
+        }
+    }
+
+    async findAllAndCountCategoryByQuery(query: GetCategoryListQuery) {
         try {
             const {
                 keyword = '',
@@ -35,8 +49,10 @@ export class ReleaseQualityRepository extends BaseRepository<ReleaseQuality> {
                 limit = +DEFAULT_LIMIT_FOR_PAGINATION,
                 orderBy = DEFAULT_ORDER_BY,
                 orderDirection = DEFAULT_ORDER_DIRECTION,
+                isActive,
             } = query;
-            const matchQuery: FilterQuery<ReleaseQuality> = {};
+
+            const matchQuery: FilterQuery<Category> = {};
             matchQuery.$and = [
                 {
                     ...softDeleteCondition,
@@ -46,11 +62,15 @@ export class ReleaseQualityRepository extends BaseRepository<ReleaseQuality> {
             if (keyword) {
                 const keywordRegex = new RegExp(`.*${keyword}.*`, 'i');
                 matchQuery.$and.push({
-                    $or: [{ name: { $regex: keywordRegex } }],
+                    $or: [{ title: { $regex: keywordRegex } }],
                 });
             }
 
-            const [result] = await this.releaseModel.aggregate([
+            if (isActive !== undefined) {
+                matchQuery.$and.push({ isActive });
+            }
+
+            const [result] = await this.categoryModel.aggregate([
                 {
                     $addFields: {
                         id: { $toString: '$_id' },
@@ -62,9 +82,7 @@ export class ReleaseQualityRepository extends BaseRepository<ReleaseQuality> {
                     },
                 },
                 {
-                    $project: parseMongoProjection(
-                        ReleaseQualityAttributesForList,
-                    ),
+                    $project: parseMongoProjection(CategoryAttributesForList),
                 },
                 {
                     $facet: {
@@ -91,17 +109,16 @@ export class ReleaseQualityRepository extends BaseRepository<ReleaseQuality> {
                         ],
                     },
                 },
-                {
-                    $limit: Number(limit),
-                },
             ]);
+
             return {
                 totalItems: result?.count?.[0]?.total || 0,
                 items: result?.data || [],
             };
         } catch (error) {
             this.logger.error(
-                'Error in UserRepository findAllAndCountUserByQuery: ' + error,
+                'Error in CategoryRepository findAllAndCountCategoryByQuery: ' +
+                    error,
             );
             throw error;
         }

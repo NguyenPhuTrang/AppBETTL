@@ -1,4 +1,4 @@
-import { ReleaseQuality } from "../../database/schemas/release-quality.schema";
+import { ReleaseQuality } from '../../database/schemas/release-quality.schema';
 
 export const ReleaseQualityAttributesForList: (keyof ReleaseQuality)[] = [
     '_id',
@@ -18,4 +18,4 @@ export const ReleaseQualityAttributesForDetail: (keyof ReleaseQuality)[] = [
     'labels',
     'diff',
     'bugs',
-]
+];

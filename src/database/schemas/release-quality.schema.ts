@@ -2,7 +2,7 @@ import { Prop, Schema } from '@nestjs/mongoose';
 import { MongoBaseSchema } from './base.schema';
 import { MongoCollection } from '../utils/constants';
 import { createSchemaForClass } from '../utils/helper';
-import { Document, Types } from 'mongoose';
+import { Types } from 'mongoose';
 import { ObjectId } from 'mongodb';
 
 export type ReleaseQualityDocument = SchemaDocument<ReleaseQuality>;
@@ -19,7 +19,7 @@ export interface IShortStatBug {
     critical: number;
     major: number;
     minor: number;
-    suggestion: number
+    suggestion: number;
 }
 @Schema({
     timestamps: true,
@@ -31,7 +31,6 @@ export interface IShortStatBug {
         virtuals: true,
     },
 })
-
 export class ReleaseQuality extends MongoBaseSchema {
     @Prop({
         required: true,
@@ -39,10 +38,10 @@ export class ReleaseQuality extends MongoBaseSchema {
     })
     repositoryId: ObjectId;
 
-    @Prop({required: false, type: String})
+    @Prop({ required: false, type: String })
     name: string;
 
-    @Prop({required: false, default: []})
+    @Prop({ required: false, default: [] })
     labels: string[];
 
     @Prop({ type: Object, required: true })

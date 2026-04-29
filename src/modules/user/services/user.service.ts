@@ -24,9 +24,12 @@ export class UserService extends BaseService<User, UserRepository> {
                 email: dto.email,
                 deletedAt: null,
             });
-    
+
             if (existingUser && existingUser.deletedAt === null) {
-                throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
+                throw new HttpException(
+                    'User already exists',
+                    HttpStatus.BAD_REQUEST,
+                );
             }
             const user: SchemaCreateDocument<User> = {
                 ...(dto as any),

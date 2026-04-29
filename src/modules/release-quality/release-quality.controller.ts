@@ -8,22 +8,15 @@ import {
     Delete,
     Get,
     Query,
-    UseGuards,
 } from '@nestjs/common';
 import { ReleaseQualityService } from './release-quality.service';
-import {
-    ApiResponseError,
-    SwaggerApiType,
-    ApiResponseSuccess,
-} from '../../common/services/swagger.service';
-import { ApiOperation, ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { JoiValidationPipe } from '../../common/pipe/joi.validation.pipe';
 import { CreateReleaseQualityDto, GetReleaseListQuery } from './interface';
 import { ErrorResponse, SuccessResponse } from '../../common/helpers/response';
 import { toObjectId } from '../../common/helpers/commonFunctions';
 import { Types } from 'mongoose';
 import { HttpStatus } from '../../common/constants';
-
 
 @ApiTags('Release Quality APIs')
 @Controller('release-quality')
@@ -39,7 +32,9 @@ export class ReleaseQualityController extends BaseController {
     ) {
         try {
             const result =
-                await this.releaseQualityService.findAllAndCountReleaseQualityByQuery(query);
+                await this.releaseQualityService.findAllAndCountReleaseQualityByQuery(
+                    query,
+                );
             return new SuccessResponse(result);
         } catch (error) {
             this.handleError(error);
@@ -47,18 +42,17 @@ export class ReleaseQualityController extends BaseController {
     }
 
     @Get(':id')
-    async getReleaseQualityById(
-        @Param('id') id: Types.ObjectId,
-    ) {
+    async getReleaseQualityById(@Param('id') id: Types.ObjectId) {
         try {
             console.log(id);
-            
-            const result =
-                await this.releaseQualityService.findReleaseById(toObjectId(id));
+
+            const result = await this.releaseQualityService.findReleaseById(
+                toObjectId(id),
+            );
             if (!result) {
                 return new ErrorResponse(
                     HttpStatus.ITEM_NOT_FOUND,
-                    'Không tìm thấy release'
+                    'Không tìm thấy release',
                 );
             }
             return new SuccessResponse(result);
@@ -68,9 +62,7 @@ export class ReleaseQualityController extends BaseController {
     }
 
     @Post()
-    async createReleaseQuality(
-        @Body() dto: CreateReleaseQualityDto,
-    ) {
+    async createReleaseQuality(@Body() dto: CreateReleaseQualityDto) {
         try {
             const result = await this.releaseQualityService.createRelease(dto);
             return new SuccessResponse(result);
@@ -87,7 +79,7 @@ export class ReleaseQualityController extends BaseController {
         try {
             const result = await this.releaseQualityService.updateRelease(
                 toObjectId(id),
-                dto
+                dto,
             );
             return new SuccessResponse(result);
         } catch (error) {
@@ -96,9 +88,7 @@ export class ReleaseQualityController extends BaseController {
     }
 
     @Delete(':id')
-    async deleteReleaseQuality(
-        @Param('id') id: string,
-    ) {
+    async deleteReleaseQuality(@Param('id') id: string) {
         try {
             const result = await this.releaseQualityService.deleteRelease(
                 toObjectId(id),

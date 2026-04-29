@@ -7,9 +7,12 @@ import { Types } from 'mongoose';
 import { ReleaseQualityAttributesForDetail } from './release-quality.constant';
 
 @Injectable()
-export class ReleaseQualityService extends BaseService<ReleaseQuality, ReleaseQualityRepository> {
+export class ReleaseQualityService extends BaseService<
+    ReleaseQuality,
+    ReleaseQualityRepository
+> {
     constructor(
-        private readonly releaseQualityRepository: ReleaseQualityRepository
+        private readonly releaseQualityRepository: ReleaseQualityRepository,
     ) {
         super(releaseQualityRepository);
     }
@@ -17,11 +20,14 @@ export class ReleaseQualityService extends BaseService<ReleaseQuality, ReleaseQu
     async findAllAndCountReleaseQualityByQuery(query: GetReleaseListQuery) {
         try {
             const result =
-                await this.releaseQualityRepository.findAllAndCountReleaseByQuery(query);
+                await this.releaseQualityRepository.findAllAndCountReleaseByQuery(
+                    query,
+                );
             return result;
         } catch (error) {
             this.logger.error(
-                'Error in ReleaseQualityService findAllAndCountReleaseByQuery: ' + error,
+                'Error in ReleaseQualityService findAllAndCountReleaseByQuery: ' +
+                    error,
             );
             throw error;
         }
@@ -31,10 +37,14 @@ export class ReleaseQualityService extends BaseService<ReleaseQuality, ReleaseQu
         try {
             const releaseQuality: SchemaCreateDocument<ReleaseQuality> = {
                 ...(dto as any),
-            }
-            return await this.releaseQualityRepository.createOne(releaseQuality);
+            };
+            return await this.releaseQualityRepository.createOne(
+                releaseQuality,
+            );
         } catch (error) {
-            this.logger.error('Error in ReleaseQualityService createRelease: ' + error);
+            this.logger.error(
+                'Error in ReleaseQualityService createRelease: ' + error,
+            );
             throw error;
         }
     }
@@ -44,7 +54,9 @@ export class ReleaseQualityService extends BaseService<ReleaseQuality, ReleaseQu
             await this.releaseQualityRepository.updateOneById(id, dto);
             return await this.findReleaseById(id);
         } catch (error) {
-            this.logger.error('Error in ReleaseQualityService updateRelease: ' + error);
+            this.logger.error(
+                'Error in ReleaseQualityService updateRelease: ' + error,
+            );
         }
     }
 
@@ -53,10 +65,15 @@ export class ReleaseQualityService extends BaseService<ReleaseQuality, ReleaseQu
         attributes: (keyof ReleaseQuality)[] = ReleaseQualityAttributesForDetail,
     ) {
         try {
-            const res = await this.releaseQualityRepository.getOneById(id, attributes);
+            const res = await this.releaseQualityRepository.getOneById(
+                id,
+                attributes,
+            );
             return res;
         } catch (error) {
-            this.logger.error('Error in ReleaseQualityService findReleaseById: ' + error);
+            this.logger.error(
+                'Error in ReleaseQualityService findReleaseById: ' + error,
+            );
             throw error;
         }
     }
@@ -64,9 +81,11 @@ export class ReleaseQualityService extends BaseService<ReleaseQuality, ReleaseQu
     async deleteRelease(id: Types.ObjectId) {
         try {
             await this.releaseQualityRepository.softDeleteOne({ _id: id });
-            return { id }
+            return { id };
         } catch (error) {
-            this.logger.error('Error in ReleaseQualityService declareRelease: ' + error);
+            this.logger.error(
+                'Error in ReleaseQualityService declareRelease: ' + error,
+            );
             throw error;
         }
     }

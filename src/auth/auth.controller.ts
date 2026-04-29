@@ -1,4 +1,4 @@
-import { Body, Controller, ExecutionContext, Get, Headers, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { LoginAdminDto, LoginUserDto, RegisterUserDto } from './auth.interface';
 import { AuthService } from './auth.service';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
@@ -10,7 +10,9 @@ import { AuthGuard } from './auth.guard';
 @ApiTags('Auth APIs')
 @Controller('auth')
 export class AuthController extends BaseController {
-    constructor(private authService: AuthService) { super();}
+    constructor(private authService: AuthService) {
+        super();
+    }
 
     @ApiBody({ type: RegisterUserDto })
     @Post('register')
@@ -19,7 +21,7 @@ export class AuthController extends BaseController {
             const res = await this.authService.register(registerUserDto);
             return new SuccessResponse(res);
         } catch (error) {
-            this.handleError(error);   
+            this.handleError(error);
         }
     }
 
@@ -30,7 +32,7 @@ export class AuthController extends BaseController {
             const res = await this.authService.registerUser(registerUserDto);
             return new SuccessResponse(res);
         } catch (error) {
-            this.handleError(error);   
+            this.handleError(error);
         }
     }
 
@@ -60,7 +62,7 @@ export class AuthController extends BaseController {
     async refreshToken(@Req() req: Request) {
         try {
             const res = await this.authService.refreshToken(req);
-            return new SuccessResponse(res)
+            return new SuccessResponse(res);
         } catch (error) {
             this.handleError(error);
         }

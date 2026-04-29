@@ -1,10 +1,15 @@
-import { INPUT_TEXT_MAX_LENGTH, MAX_PRICE, MIN_PRICE, TEXTAREA_MAX_LENGTH, URL_MAX_LENGTH } from '../../common/constants';
+import {
+    INPUT_TEXT_MAX_LENGTH,
+    MAX_PRICE,
+    MIN_PRICE,
+    TEXTAREA_MAX_LENGTH,
+    URL_MAX_LENGTH,
+} from '../../common/constants';
 import { JoiValidate } from '../../common/decorators/validator.decorator';
-import { CommonListQuery } from "../../common/interfaces";
+import { CommonListQuery } from '../../common/interfaces';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import Joi from '../../plugins/joi';
 import { ProductOrderBy } from './product.constant';
-
 
 export class CreateProductDto {
     @ApiProperty({
@@ -63,6 +68,21 @@ export class CreateProductDto {
     })
     @JoiValidate(Joi.string().trim().max(URL_MAX_LENGTH).required())
     sale: string;
+
+    @ApiPropertyOptional({
+        // thêm
+        type: String,
+        maxLength: INPUT_TEXT_MAX_LENGTH,
+        default: null,
+    })
+    @JoiValidate(
+        Joi.string()
+            .trim()
+            .max(INPUT_TEXT_MAX_LENGTH)
+            .optional()
+            .allow(null, ''),
+    )
+    categoryId?: string;
 }
 
 export class UpdateProductDto {
@@ -73,6 +93,7 @@ export class UpdateProductDto {
     })
     @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH).required())
     name: string;
+
     @ApiProperty({
         type: String,
         maxLength: MAX_PRICE,
@@ -81,6 +102,7 @@ export class UpdateProductDto {
     })
     @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH).required())
     price: string;
+
     @ApiProperty({
         type: String,
         maxLength: INPUT_TEXT_MAX_LENGTH,
@@ -88,6 +110,7 @@ export class UpdateProductDto {
     })
     @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH).required())
     quantity: string;
+
     @ApiProperty({
         type: String,
         maxLength: TEXTAREA_MAX_LENGTH,
@@ -95,6 +118,7 @@ export class UpdateProductDto {
     })
     @JoiValidate(Joi.string().trim().max(TEXTAREA_MAX_LENGTH).required())
     description: string;
+
     @ApiProperty({
         type: String,
         maxLength: URL_MAX_LENGTH,
@@ -102,6 +126,21 @@ export class UpdateProductDto {
     })
     @JoiValidate(Joi.string().trim().max(URL_MAX_LENGTH).required())
     image: string;
+
+    @ApiPropertyOptional({
+        // thêm
+        type: String,
+        maxLength: INPUT_TEXT_MAX_LENGTH,
+        default: null,
+    })
+    @JoiValidate(
+        Joi.string()
+            .trim()
+            .max(INPUT_TEXT_MAX_LENGTH)
+            .optional()
+            .allow(null, ''),
+    )
+    categoryId?: string;
 }
 
 export class GetProductListQuery extends CommonListQuery {
@@ -112,17 +151,23 @@ export class GetProductListQuery extends CommonListQuery {
     })
     @JoiValidate(
         Joi.string()
-          .valid(...Object.values(ProductOrderBy))
-          .optional(),
+            .valid(...Object.values(ProductOrderBy))
+            .optional(),
     )
     orderBy?: ProductOrderBy;
-    
+
     @ApiProperty({
         type: String,
         maxLength: INPUT_TEXT_MAX_LENGTH,
         default: "Product'name for filter",
     })
-    @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH).optional().allow(null, ''))
+    @JoiValidate(
+        Joi.string()
+            .trim()
+            .max(INPUT_TEXT_MAX_LENGTH)
+            .optional()
+            .allow(null, ''),
+    )
     name?: string;
 
     @ApiProperty({
@@ -148,4 +193,19 @@ export class GetProductListQuery extends CommonListQuery {
     })
     @JoiValidate(Joi.string().trim().max(INPUT_TEXT_MAX_LENGTH).optional())
     sale?: string;
+
+    @ApiPropertyOptional({
+        // thêm
+        type: String,
+        maxLength: INPUT_TEXT_MAX_LENGTH,
+        default: 'Category id for filter',
+    })
+    @JoiValidate(
+        Joi.string()
+            .trim()
+            .max(INPUT_TEXT_MAX_LENGTH)
+            .optional()
+            .allow(null, ''),
+    )
+    categoryId?: string;
 }

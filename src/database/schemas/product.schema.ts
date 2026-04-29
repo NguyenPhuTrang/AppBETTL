@@ -14,20 +14,22 @@ export type ProductDocument = SchemaDocument<Product>;
     },
 })
 export class Product extends MongoBaseSchema {
-    @Prop({required: true, type: String})
+    @Prop({ required: true, type: String })
     name: string;
-    @Prop({required: true, type: String})
+    @Prop({ required: true, type: String })
     price: string;
-    @Prop({required: true, type: String})
+    @Prop({ required: true, type: String })
     quantity: string;
-    @Prop({required: true, type: String})
+    @Prop({ required: true, type: String })
     description: string;
-    @Prop({required: true, type: String})
+    @Prop({ required: true, type: String })
     image: string;
-    @Prop({required: true, type: String})
+    @Prop({ required: true, type: String })
     sale: string;
-    @Prop({required: true, type: String})
+    @Prop({ required: true, type: String })
     rating: string;
+    @Prop({ required: false, type: String, default: null })
+    categoryId: string;
 }
 
 const ProductSchema = createSchemaForClass(Product);

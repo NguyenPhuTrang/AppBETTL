@@ -62,40 +62,6 @@ async function bootstrap() {
     };
 
     app.enableCors(corsOptions);
-
-    // app.enableCors({
-    //     origin: [
-    //       'http://localhost:3000',
-    //       'http://localhost:5173/',
-    //       'http://www.example.com',
-    //       'http://app.example.com',
-    //       'https://example.com',
-    //       'https://www.example.com',
-    //       'https://app.example.com',
-    //     ],
-    //     methods: ["GET", "POST"],
-    //     credentials: true,
-    //   });
-
-    // const corsOptions: CorsOptions = {
-    //     origin: 'http://localhost:5173/login',
-    //     allowedHeaders: [
-    //         'Content-Type',
-    //         'Authorization',
-    //         'Language',
-    //         'X-Timezone',
-    //         'X-Timezone-Name',
-    //         'X-Mssp-Id',
-    //         'X-Organization-Id',
-    //     ],
-    //     optionsSuccessStatus: 200,
-    //     methods: ['GET', 'PUT', 'POST', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'],
-    // };
-
-    // // Kích hoạt CORS cho ứng dụng
-    // app.enableCors(corsOptions);
-
-    // setup prefix of route
     app.setGlobalPrefix(configService.get(ConfigKey.BASE_PATH));
 
     if (configService.get(ConfigKey.SWAGGER_ENABLED) !== BooleanString.TRUE) {
