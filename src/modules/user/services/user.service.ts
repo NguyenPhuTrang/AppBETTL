@@ -85,4 +85,55 @@ export class UserService extends BaseService<User, UserRepository> {
             throw error;
         }
     }
+
+    async findOrCreateGoogleUser(profile: {
+        email: string;
+        name: string;
+        avatarUrl: string;
+        googleId: string;
+    }) {
+        try {
+            // Tìm theo googleId trước
+            let existing = await this.userRepository.findOneBy({
+                googleId: profile.googleId,
+                deletedAt: null,
+            });
+
+            // Nếu không có thì tìm theo email
+            if (!existing) {
+                existing = await this.userRepository.findOneBy({
+                    email: profile.email,
+                    deletedAt: null,
+                });
+            }
+
+            if (existing) {
+                // Nếu user đã có email/password nhưng chưa có googleId → link lại
+                if (!existing.googleId) {
+                    await this.userRepository.updateOneById(existing._id, {
+                        googleId: profile.googleId,
+                    });
+                }
+                return existing;
+            }
+
+            // Tạo mới nếu chưa có
+            const newUser: SchemaCreateDocument<User> = {
+                email: profile.email,
+                name: profile.name,
+                avatarUrl:
+                    profile.avatarUrl ||
+                    'https://default-avatar.com/default.png',
+                googleId: profile.googleId,
+                role: 'user', // ⚠️ đổi thành role mặc định của project bạn
+            } as any;
+
+            return await this.userRepository.createOne(newUser);
+        } catch (error) {
+            this.logger.error(
+                'Error in UserService findOrCreateGoogleUser: ' + error,
+            );
+            throw error;
+        }
+    }
 }

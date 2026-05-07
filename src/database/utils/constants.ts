@@ -4,4 +4,5 @@ export enum MongoCollection {
     RELEASEQUALITY = 'release-quality',
     CATEGORIES = 'categories',
     CARTS = 'carts',
+    PAYMENTS = 'payments',
 }

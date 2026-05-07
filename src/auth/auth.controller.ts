@@ -36,7 +36,7 @@ export class AuthController extends BaseController {
         }
     }
 
-    @ApiBody({ type: LoginUserDto })
+    @ApiBody({ type: LoginAdminDto })
     @Post('login')
     async login(@Body() loginAdminDto: LoginAdminDto) {
         try {
@@ -73,6 +73,17 @@ export class AuthController extends BaseController {
     async getUser(@Req() req: Request) {
         try {
             const res = await this.authService.getUser(req);
+            return new SuccessResponse(res);
+        } catch (error) {
+            this.handleError(error);
+        }
+    }
+
+    // ✅ Thêm mới - Google Login
+    @Post('google-login')
+    async googleLogin(@Body('idToken') idToken: string) {
+        try {
+            const res = await this.authService.googleLogin(idToken);
             return new SuccessResponse(res);
         } catch (error) {
             this.handleError(error);

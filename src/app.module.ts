@@ -15,6 +15,7 @@ import { ProductsModule } from './modules/products/products.module';
 import { ReleaseQualityModule } from './modules/release-quality/release-quality.module';
 import { CategoryModule } from './modules/category/category.module';
 import { CartModule } from './modules/cart/cart.module';
+import { PaymentModule } from './payment/payment.module';
 @Module({
     imports: [
         ConfigModule.forRoot({
@@ -31,6 +32,7 @@ import { CartModule } from './modules/cart/cart.module';
         ReleaseQualityModule,
         CategoryModule,
         CartModule,
+        PaymentModule,
     ],
     controllers: [AppController],
     providers: [

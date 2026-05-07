@@ -8,8 +8,9 @@ import { Request } from 'express';
 import { HttpStatus } from '../common/constants';
 import { BaseService } from '../common/base/base.service';
 import * as bcrypt from 'bcrypt';
+
 @Injectable()
-export class AuthService extends BaseService {
+export class AuthService extends BaseService<any, any> {
     constructor(
         private readonly userRepository: UserRepository,
         private readonly jwtService: JwtService,
@@ -130,7 +131,7 @@ export class AuthService extends BaseService {
                     HttpStatus.BAD_REQUEST,
                 );
             }
-        } catch (error) {
+        } catch (error: any) {
             if (error.name === 'TokenExpiredError') {
                 throw new HttpException(
                     'Refresh token has expired',
@@ -147,6 +148,194 @@ export class AuthService extends BaseService {
                     HttpStatus.INTERNAL_SERVER_ERROR,
                 );
             }
+        }
+    }
+
+    async register(dto: RegisterUserDto): Promise<any> {
+        try {
+            const existingUser = await this.userRepository.findOneBy({
+                email: dto.email,
+                deletedAt: null,
+            });
+
+            if (existingUser) {
+                throw new HttpException(
+                    'User already exists',
+                    HttpStatus.BAD_REQUEST,
+                );
+            }
+            const hashedPassword = await bcrypt.hash(dto.password, 10);
+
+            const user: SchemaCreateDocument<User> = {
+                name: dto.name,
+                email: dto.email,
+                birthday: dto.birthday,
+                numberPhone: dto.numberPhone,
+                avatarUrl: dto.avatarUrl,
+                role: dto.role,
+                refresh_token: '',
+                password: hashedPassword,
+                googleId: null,
+            };
+
+            return await this.userRepository.createOne(user);
+        } catch (error) {
+            this.logger.error('Error in UserService createUser: ' + error);
+            throw error;
+        }
+    }
+
+    async registerUser(dto: RegisterUserDto): Promise<any> {
+        try {
+            const existingUser = await this.userRepository.findOneBy({
+                email: dto.email,
+                deletedAt: null,
+            });
+
+            if (existingUser && existingUser.deletedAt === null) {
+                throw new HttpException(
+                    'User already exists',
+                    HttpStatus.BAD_REQUEST,
+                );
+            }
+
+            const hashedPassword = await bcrypt.hash(dto.password, 10);
+
+            const user: SchemaCreateDocument<User> = {
+                name: dto.name,
+                email: dto.email,
+                birthday: dto.birthday,
+                numberPhone: dto.numberPhone,
+                avatarUrl: dto.avatarUrl,
+                role: dto.role,
+                refresh_token: '',
+                password: hashedPassword,
+                googleId: null,
+            };
+
+            return await this.userRepository.createOne(user);
+        } catch (error) {
+            this.logger.error('Error in UserService createUser: ' + error);
+            throw error;
+        }
+    }
+
+    async getUser(request: Request): Promise<any> {
+        try {
+            const accessToken = this.extractTokenFromHeader(request);
+            const verify = await this.jwtService.verifyAsync(accessToken, {
+                secret: this.configService.get<string>('SECRET'),
+            });
+
+            const user = await this.userRepository.findOneBy({
+                email: verify.email,
+            });
+
+            if (!user) {
+                throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+            }
+
+            return {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                birthday: user.birthday,
+                numberPhone: user.numberPhone,
+                avatarUrl: user.avatarUrl,
+            };
+        } catch (error: any) {
+            if (error instanceof HttpException) {
+                throw error;
+            }
+
+            if (error.name === 'TokenExpiredError') {
+                throw new HttpException(
+                    'Refresh token has expired',
+                    HttpStatus.UNAUTHORIZED,
+                );
+            } else if (error.name === 'JsonWebTokenError') {
+                throw new HttpException(
+                    'Invalid refresh token',
+                    HttpStatus.UNAUTHORIZED,
+                );
+            } else {
+                throw new HttpException(
+                    'Error verifying refresh token',
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                );
+            }
+        }
+    }
+
+    async googleLogin(accessToken: string): Promise<any> {
+        try {
+            // 1. Dùng access_token gọi Google API lấy user info
+            let payload: any;
+            try {
+                const response = await fetch(
+                    'https://www.googleapis.com/oauth2/v3/userinfo',
+                    {
+                        headers: {
+                            Authorization: `Bearer ${accessToken}`,
+                        },
+                    },
+                );
+
+                if (!response.ok) {
+                    throw new Error('Invalid token');
+                }
+
+                payload = await response.json();
+            } catch {
+                throw new HttpException(
+                    'Google token không hợp lệ',
+                    HttpStatus.UNAUTHORIZED,
+                );
+            }
+
+            if (!payload?.email) {
+                throw new HttpException(
+                    'Không lấy được email từ Google',
+                    HttpStatus.UNAUTHORIZED,
+                );
+            }
+
+            // 2. Tìm theo email
+            let user = await this.userRepository.findOneByCondition({
+                email: payload.email,
+                deletedAt: null,
+            });
+
+            if (user) {
+                // Link googleId nếu chưa có
+                if (!user.googleId) {
+                    await this.userRepository.updateOneById(user._id, {
+                        googleId: payload.sub,
+                    } as any);
+                }
+            } else {
+                // 3. Tạo user mới
+                const newUser: SchemaCreateDocument<User> = {
+                    email: payload.email,
+                    name: payload.name ?? '',
+                    avatarUrl: payload.picture ?? '',
+                    googleId: payload.sub,
+                    role: 'user',
+                    refresh_token: '',
+                    password: '',
+                    birthday: '',
+                    numberPhone: '',
+                } as any;
+
+                user = await this.userRepository.createOne(newUser);
+            }
+
+            // 4. Tạo token
+            const tokenPayload = { id: user.id, email: user.email };
+            return this.generateToken(tokenPayload);
+        } catch (error) {
+            this.logger.error('Error in AuthService googleLogin: ' + error);
+            throw error;
         }
     }
 
@@ -199,120 +388,6 @@ export class AuthService extends BaseService {
         }
 
         return seconds;
-    }
-
-    async register(dto: RegisterUserDto): Promise<any> {
-        try {
-            const existingUser = await this.userRepository.findOneBy({
-                email: dto.email,
-                deletedAt: null,
-            });
-
-            if (existingUser) {
-                throw new HttpException(
-                    'User already exists',
-                    HttpStatus.BAD_REQUEST,
-                );
-            }
-            const hashedPassword = await bcrypt.hash(dto.password, 10);
-
-            const user: SchemaCreateDocument<User> = {
-                name: dto.name,
-                email: dto.email,
-                birthday: dto.birthday,
-                numberPhone: dto.numberPhone,
-                avatarUrl: dto.avatarUrl,
-                role: dto.role,
-                refresh_token: '',
-                password: hashedPassword,
-            };
-
-            return await this.userRepository.createOne(user);
-        } catch (error) {
-            this.logger.error('Error in UserService createUser: ' + error);
-            throw error;
-        }
-    }
-
-    async registerUser(dto: RegisterUserDto): Promise<any> {
-        try {
-            const existingUser = await this.userRepository.findOneBy({
-                email: dto.email,
-                deletedAt: null,
-            });
-
-            if (existingUser && existingUser.deletedAt === null) {
-                throw new HttpException(
-                    'User already exists',
-                    HttpStatus.BAD_REQUEST,
-                );
-            }
-
-            const hashedPassword = await bcrypt.hash(dto.password, 10);
-
-            const user: SchemaCreateDocument<User> = {
-                name: dto.name,
-                email: dto.email,
-                birthday: dto.birthday,
-                numberPhone: dto.numberPhone,
-                avatarUrl: dto.avatarUrl,
-                role: dto.role,
-                refresh_token: '',
-                password: hashedPassword,
-            };
-
-            return await this.userRepository.createOne(user);
-        } catch (error) {
-            this.logger.error('Error in UserService createUser: ' + error);
-            throw error;
-        }
-    }
-
-    async getUser(request: Request): Promise<any> {
-        try {
-            const accessToken = this.extractTokenFromHeader(request);
-            const verify = await this.jwtService.verifyAsync(accessToken, {
-                secret: this.configService.get<string>('SECRET'),
-            });
-
-            const user = await this.userRepository.findOneBy({
-                email: verify.email,
-            });
-
-            if (!user) {
-                throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-            }
-
-            return {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                birthday: user.birthday,
-                numberPhone: user.numberPhone,
-                avatarUrl: user.avatarUrl,
-            };
-        } catch (error) {
-            if (error instanceof HttpException) {
-                throw error;
-            }
-
-            if (error.name === 'TokenExpiredError') {
-                throw new HttpException(
-                    'Refresh token has expired',
-                    HttpStatus.UNAUTHORIZED,
-                );
-            } else if (error.name === 'JsonWebTokenError') {
-                throw new HttpException(
-                    'Invalid refresh token',
-                    HttpStatus.UNAUTHORIZED,
-                );
-            } else {
-                throw new HttpException(
-                    'Error verifying refresh token',
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                );
-            }
-        }
     }
 
     private extractTokenFromHeader(request: Request): string | undefined {
