@@ -20,7 +20,6 @@ import {
     ApiResponseSuccess,
 } from '../../../common/services/swagger.service';
 import { ApiOperation, ApiBody, ApiTags } from '@nestjs/swagger';
-
 import { TrimBodyPipe } from '../../../common/pipe/trim.body.pipe';
 import { toObjectId } from '../../../common/helpers/commonFunctions';
 import { BaseController } from '../../../common/base/base.controller';
@@ -46,6 +45,7 @@ export class ProductController extends BaseController {
     constructor(private readonly productService: ProductService) {
         super();
     }
+
     @UseGuards(AuthGuard)
     @ApiOperation({ summary: 'Create Product' })
     @ApiResponseError([SwaggerApiType.CREATE])
@@ -63,6 +63,7 @@ export class ProductController extends BaseController {
             this.handleError(error);
         }
     }
+
     @UseGuards(AuthGuard)
     @ApiOperation({ summary: 'Update Product by id' })
     @ApiResponseError([SwaggerApiType.UPDATE])
@@ -70,25 +71,11 @@ export class ProductController extends BaseController {
     @ApiBody({ type: UpdateProductDto })
     @Patch(':id')
     async updateProduct(
-        @Param('id', new JoiValidationPipe(mongoIdSchema))
-        id: string,
+        @Param('id', new JoiValidationPipe(mongoIdSchema)) id: string,
         @Body(new TrimBodyPipe(), new JoiValidationPipe())
         dto: UpdateProductDto,
     ) {
         try {
-            const product = await this.productService.findProductById(
-                toObjectId(id),
-            );
-            if (!product) {
-                return new ErrorResponse(
-                    HttpStatus.ITEM_NOT_FOUND,
-                    this.translate('user.error.notFound', {
-                        args: {
-                            id,
-                        },
-                    }),
-                );
-            }
             const result = await this.productService.updateProduct(
                 toObjectId(id),
                 dto,
@@ -98,30 +85,16 @@ export class ProductController extends BaseController {
             this.handleError(error);
         }
     }
+
     @UseGuards(AuthGuard)
     @ApiOperation({ summary: 'Delete Product by id' })
     @ApiResponseError([SwaggerApiType.DELETE])
     @ApiResponseSuccess(deleteProductSuccessResponseExample)
     @Delete(':id')
     async deleteProduct(
-        @Param('id', new JoiValidationPipe(mongoIdSchema))
-        id: string,
+        @Param('id', new JoiValidationPipe(mongoIdSchema)) id: string,
     ) {
         try {
-            const product = await this.productService.findProductById(
-                toObjectId(id),
-            );
-
-            if (!product) {
-                return new ErrorResponse(
-                    HttpStatus.ITEM_NOT_FOUND,
-                    this.translate('user.error.notFound', {
-                        args: {
-                            id,
-                        },
-                    }),
-                );
-            }
             const result = await this.productService.deleteProduct(
                 toObjectId(id),
             );
@@ -130,6 +103,7 @@ export class ProductController extends BaseController {
             this.handleError(error);
         }
     }
+
     @UseGuards(AuthGuard)
     @ApiOperation({ summary: 'Get Product details by id' })
     @ApiResponseError([SwaggerApiType.GET_DETAIL])
@@ -142,15 +116,10 @@ export class ProductController extends BaseController {
             const result = await this.productService.findProductById(
                 toObjectId(id),
             );
-
             if (!result) {
                 return new ErrorResponse(
                     HttpStatus.ITEM_NOT_FOUND,
-                    this.translate('user.error.notFound', {
-                        args: {
-                            id,
-                        },
-                    }),
+                    this.translate('product.error.notFound', { args: { id } }),
                 );
             }
             return new SuccessResponse(result);
@@ -163,9 +132,8 @@ export class ProductController extends BaseController {
     @ApiResponseError([SwaggerApiType.GET_LIST])
     @ApiResponseSuccess(getProductListSuccessResponseExample)
     @Get()
-    async getUserList(
-        @Query(new JoiValidationPipe())
-        query: GetProductListQuery,
+    async getProductList(
+        @Query(new JoiValidationPipe()) query: GetProductListQuery,
     ) {
         try {
             const result =

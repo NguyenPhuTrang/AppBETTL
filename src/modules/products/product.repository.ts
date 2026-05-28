@@ -69,29 +69,26 @@ export class ProductRepository extends BaseRepository<Product> {
             } = query;
 
             const matchQuery: FilterQuery<Product> = {};
-            matchQuery.$and = [
-                {
-                    ...softDeleteCondition,
-                },
-            ];
+            matchQuery.$and = [{ ...softDeleteCondition }];
+
+            // ── Filters ──────────────────────────────────────────────────────
 
             if (rating) {
+                // Lọc rating >= giá trị truyền vào (vd: rating=4 → lấy 4 sao trở lên)
                 matchQuery.$and.push({
-                    rating,
+                    rating: { $gte: Number(rating) },
                 });
             }
 
             if (sale) {
+                // Lọc sản phẩm giảm giá >= % truyền vào
                 matchQuery.$and.push({
-                    sale,
+                    sale: { $gte: Number(sale) },
                 });
             }
 
             if (categoryId) {
-                // thêm
-                matchQuery.$and.push({
-                    categoryId,
-                });
+                matchQuery.$and.push({ categoryId });
             }
 
             if (keyword) {
@@ -105,10 +102,10 @@ export class ProductRepository extends BaseRepository<Product> {
             }
 
             if (name) {
-                matchQuery.$and.push({
-                    name,
-                });
+                matchQuery.$and.push({ name });
             }
+
+            // ── Sort ─────────────────────────────────────────────────────────
 
             const sortStage: any = {};
             if (!price) {
@@ -116,29 +113,37 @@ export class ProductRepository extends BaseRepository<Product> {
                     [orderBy]: orderDirection === OrderDirection.ASC ? 1 : -1,
                 };
             } else {
-                if (price === 'asc') {
-                    sortStage.$sort = {
-                        price: 1,
-                    };
-                }
-                if (price === 'desc') {
-                    sortStage.$sort = {
-                        price: -1,
-                    };
-                }
+                sortStage.$sort = { price: price === 'asc' ? 1 : -1 };
             }
+
+            // ── Aggregate ────────────────────────────────────────────────────
 
             const [result] = await this.productModel.aggregate([
                 {
                     $addFields: {
                         id: { $toString: '$_id' },
-                        price: { $toDouble: '$price' },
+                        // Tính giá sau giảm, trả luôn về frontend
+                        discountedPrice: {
+                            $cond: {
+                                if: { $gt: ['$sale', 0] },
+                                then: {
+                                    $multiply: [
+                                        '$price',
+                                        {
+                                            $subtract: [
+                                                1,
+                                                { $divide: ['$sale', 100] },
+                                            ],
+                                        },
+                                    ],
+                                },
+                                else: '$price',
+                            },
+                        },
                     },
                 },
                 {
-                    $match: {
-                        ...matchQuery,
-                    },
+                    $match: { ...matchQuery },
                 },
                 {
                     $project: parseMongoProjection(ProductAttributesForList),
@@ -148,12 +153,8 @@ export class ProductRepository extends BaseRepository<Product> {
                         count: [{ $count: 'total' }],
                         data: [
                             sortStage,
-                            {
-                                $skip: (page - 1) * limit,
-                            },
-                            {
-                                $limit: Number(limit),
-                            },
+                            { $skip: (page - 1) * limit },
+                            { $limit: Number(limit) },
                         ],
                     },
                 },
@@ -165,7 +166,8 @@ export class ProductRepository extends BaseRepository<Product> {
             };
         } catch (error) {
             this.logger.error(
-                'Error in UserRepository findAllAndCountUserByQuery: ' + error,
+                'Error in ProductRepository findAllAndCountProductByQuery: ' +
+                    error,
             );
             throw error;
         }

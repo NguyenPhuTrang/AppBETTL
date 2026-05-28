@@ -34,6 +34,7 @@ export class CartService extends BaseService<Cart, CartRepository> {
                     HttpStatus.ITEM_NOT_FOUND,
                 );
             }
+
             let cart = await this.cartRepository.findCartByUserId(userId);
 
             if (!cart) {
@@ -43,30 +44,41 @@ export class CartService extends BaseService<Cart, CartRepository> {
                         {
                             productId: dto.productId,
                             productName: product.name,
-                            productImage: product.image,
+                            productImage: product.images?.[0] ?? null,
                             price: Number(product.price),
                             quantity: dto.quantity,
+                            color: dto.color ?? null,
+                            size: dto.size ?? null,
                         },
                     ],
                     totalPrice: Number(product.price) * dto.quantity,
                 } as any);
             } else {
+                // Tìm item trùng productId + color + size
                 const existingItemIndex = (cart.items as any[]).findIndex(
-                    (item) => item.productId === dto.productId,
+                    (item) =>
+                        item.productId === dto.productId &&
+                        item.color?.value === dto.color?.value &&
+                        item.size === dto.size,
                 );
 
                 if (existingItemIndex > -1) {
+                    // Cùng màu + size → tăng quantity
                     (cart.items as any[])[existingItemIndex].quantity +=
                         dto.quantity;
                 } else {
+                    // Khác màu hoặc size → thêm item mới
                     (cart.items as any[]).push({
                         productId: dto.productId,
                         productName: product.name,
-                        productImage: product.image,
+                        productImage: product.images?.[0] ?? null,
                         price: Number(product.price),
                         quantity: dto.quantity,
+                        color: dto.color ?? null,
+                        size: dto.size ?? null,
                     });
                 }
+
                 const totalPrice = (cart.items as any[]).reduce(
                     (sum, item) => sum + item.price * item.quantity,
                     0,
@@ -76,8 +88,10 @@ export class CartService extends BaseService<Cart, CartRepository> {
                     items: cart.items,
                     totalPrice,
                 } as any);
+
                 cart = await this.cartRepository.findCartByUserId(userId);
             }
+
             return cart;
         } catch (error) {
             this.logger.error('Error in CartService addToCart: ' + error);
@@ -134,9 +148,11 @@ export class CartService extends BaseService<Cart, CartRepository> {
                     HttpStatus.ITEM_NOT_FOUND,
                 );
             }
+
             const updatedItems = (cart.items as any[]).filter(
                 (item) => item.productId !== productId,
             );
+
             const totalPrice = updatedItems.reduce(
                 (sum, item) => sum + item.price * item.quantity,
                 0,
@@ -163,10 +179,12 @@ export class CartService extends BaseService<Cart, CartRepository> {
                     HttpStatus.ITEM_NOT_FOUND,
                 );
             }
+
             await this.cartRepository.updateOneById((cart as any)._id, {
                 items: [],
                 totalPrice: 0,
             } as any);
+
             return await this.cartRepository.findCartByUserId(userId);
         } catch (error) {
             this.logger.error('Error in CartService clearCart: ' + error);

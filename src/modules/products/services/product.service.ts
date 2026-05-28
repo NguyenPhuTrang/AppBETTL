@@ -19,18 +19,18 @@ export class ProductService extends BaseService<Product, ProductRepository> {
 
     async createProduct(dto: CreateProductDto) {
         try {
-            const existingProduct = await this.productRepository.findOneBy({
-                name: dto.name,
-                deletedAt: null,
-            });
-            if (existingProduct) {
-                throw new HttpException(
-                    'Product already exists',
-                    HttpStatus.BAD_REQUEST,
-                );
-            }
             const product: SchemaCreateDocument<Product> = {
                 ...(dto as any),
+                images: dto.images ?? [],
+                colors: dto.colors ?? [],
+                sizes: dto.sizes ?? [],
+                sale: dto.sale ?? 0,
+                originalPrice: dto.originalPrice ?? dto.price,
+                condition: dto.condition ?? 'New',
+                rating: dto.rating ?? 0,
+                totalRatings: 0,
+                totalSold: 0,
+                shipping: dto.shipping ?? null,
             };
             return await this.productRepository.createOne(product);
         } catch (error) {
@@ -43,19 +43,35 @@ export class ProductService extends BaseService<Product, ProductRepository> {
 
     async updateProduct(id: Types.ObjectId, dto: UpdateProductDto) {
         try {
+            const existing = await this.findProductById(id);
+            if (!existing) {
+                throw new HttpException(
+                    'Product not found',
+                    HttpStatus.NOT_FOUND,
+                );
+            }
             await this.productRepository.updateOneById(id, dto);
             return await this.findProductById(id);
         } catch (error) {
             this.logger.error('Error in ProductService updateProduct:' + error);
+            throw error;
         }
     }
 
     async deleteProduct(id: Types.ObjectId) {
         try {
+            const existing = await this.findProductById(id);
+            if (!existing) {
+                throw new HttpException(
+                    'Product not found',
+                    HttpStatus.NOT_FOUND,
+                );
+            }
             await this.productRepository.softDeleteOne({ _id: id });
             return { id };
         } catch (error) {
             this.logger.error('Error in ProductService deleteProduct:' + error);
+            throw error;
         }
     }
 
@@ -75,11 +91,9 @@ export class ProductService extends BaseService<Product, ProductRepository> {
 
     async findAllAndCountProductByQuery(query: GetProductListQuery) {
         try {
-            const result =
-                await this.productRepository.findAllAndCountProductByQuery(
-                    query,
-                );
-            return result;
+            return await this.productRepository.findAllAndCountProductByQuery(
+                query,
+            );
         } catch (error) {
             this.logger.error(
                 'Error in ProductService findAllAndCountProductByQuery:' +

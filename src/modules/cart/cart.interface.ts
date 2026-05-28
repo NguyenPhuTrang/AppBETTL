@@ -4,71 +4,80 @@ import Joi from '../../plugins/joi';
 import { CommonListQuery } from '../../common/interfaces';
 import { CartOrderBy } from './cart.constant';
 
+export class CartItemColorDto {
+    @ApiProperty({ type: String })
+    @JoiValidate(Joi.string().trim().required())
+    label: string;
+
+    @ApiProperty({ type: String })
+    @JoiValidate(Joi.string().trim().required())
+    value: string;
+}
+
 export class CartItemDto {
-    @ApiProperty({
-        type: String,
-        default: 'Product ID',
-    })
+    @ApiProperty({ type: String, default: 'Product ID' })
     @JoiValidate(Joi.string().trim().required())
     productId: string;
 
-    @ApiProperty({
-        type: String,
-        default: 'Product Name',
-    })
+    @ApiProperty({ type: String, default: 'Product Name' })
     @JoiValidate(Joi.string().trim().required())
     productName: string;
 
-    @ApiProperty({
-        type: String,
-        default: 'Product Image URL',
-    })
+    @ApiProperty({ type: String, default: 'Product Image URL' })
     @JoiValidate(Joi.string().trim().required())
     productImage: string;
 
-    @ApiProperty({
-        type: Number,
-        default: 0,
-    })
+    @ApiProperty({ type: Number, default: 0 })
     @JoiValidate(Joi.number().required())
     price: number;
 
-    @ApiProperty({
-        type: Number,
-        default: 1,
-    })
+    @ApiProperty({ type: Number, default: 1 })
     @JoiValidate(Joi.number().min(1).required())
     quantity: number;
+
+    @ApiPropertyOptional({ type: CartItemColorDto })
+    @JoiValidate(
+        Joi.object({
+            label: Joi.string().trim().required(),
+            value: Joi.string().trim().required(),
+        }).optional(),
+    )
+    color?: CartItemColorDto;
+
+    @ApiPropertyOptional({ type: String })
+    @JoiValidate(Joi.string().trim().optional())
+    size?: string;
 }
 
 export class AddToCartDto {
-    @ApiProperty({
-        type: String,
-        default: 'Product ID',
-    })
+    @ApiProperty({ type: String, default: 'Product ID' })
     @JoiValidate(Joi.string().trim().required())
     productId: string;
 
-    @ApiProperty({
-        type: Number,
-        default: 1,
-    })
+    @ApiProperty({ type: Number, default: 1 })
     @JoiValidate(Joi.number().min(1).required())
     quantity: number;
+
+    @ApiPropertyOptional({ type: CartItemColorDto })
+    @JoiValidate(
+        Joi.object({
+            label: Joi.string().trim().required(),
+            value: Joi.string().trim().required(),
+        }).optional(),
+    )
+    color?: CartItemColorDto;
+
+    @ApiPropertyOptional({ type: String })
+    @JoiValidate(Joi.string().trim().optional())
+    size?: string;
 }
 
 export class UpdateCartItemDto {
-    @ApiProperty({
-        type: String,
-        default: 'Product ID',
-    })
+    @ApiProperty({ type: String, default: 'Product ID' })
     @JoiValidate(Joi.string().trim().required())
     productId: string;
 
-    @ApiProperty({
-        type: Number,
-        default: 1,
-    })
+    @ApiProperty({ type: Number, default: 1 })
     @JoiValidate(Joi.number().min(1).required())
     quantity: number;
 }
@@ -86,10 +95,7 @@ export class GetCartListQuery extends CommonListQuery {
     )
     orderBy?: CartOrderBy;
 
-    @ApiPropertyOptional({
-        type: String,
-        description: 'Filter by userId',
-    })
+    @ApiPropertyOptional({ type: String, description: 'Filter by userId' })
     @JoiValidate(Joi.string().trim().optional())
     userId?: string;
 }
